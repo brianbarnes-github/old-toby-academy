@@ -80,13 +80,19 @@ export const onRequest = defineMiddleware(async (context, next) => {
   let profile: Profile | null = null;
   let permissions = new Set<string>();
   if (user) {
-    const [{ data: profileData }, { data: permsData }] = await Promise.all([
+    const [{ data: profileData }, { data: permsData, error: permsErr }] = await Promise.all([
       supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
-      supabase.rpc('current_user_permissions'),
+      supabase.from('my_permissions').select('slug'),
     ]);
     profile = (profileData ?? null) as Profile | null;
-    if (Array.isArray(permsData)) {
-      permissions = new Set(permsData as string[]);
+    if (permsErr) {
+      console.error('my_permissions select failed', permsErr);
+    } else if (Array.isArray(permsData)) {
+      permissions = new Set(
+        permsData
+          .map((row: any) => row?.slug)
+          .filter((slug: any): slug is string => typeof slug === 'string')
+      );
     }
   }
 
