@@ -42,6 +42,88 @@ export const prerender = false;
         <dd>Root + major third + augmented fifth. <em>Example in C:</em> <span class="mono">C – E – G♯</span>.</dd>
       </dl>
 
+      <figure class="diagram-figure">
+        <svg viewBox="0 0 600 200" class="staff-svg" role="img" aria-label="Four C triads written on a staff: major, minor, diminished, augmented.">
+          <line class="staff-line" x1="20" y1="50"  x2="580" y2="50"/>
+          <line class="staff-line" x1="20" y1="70"  x2="580" y2="70"/>
+          <line class="staff-line" x1="20" y1="90"  x2="580" y2="90"/>
+          <line class="staff-line" x1="20" y1="110" x2="580" y2="110"/>
+          <line class="staff-line" x1="20" y1="130" x2="580" y2="130"/>
+
+          <text class="clef-glyph" x="55" y="120" style="font-size:80px">𝄞</text>
+
+          <line class="barline" x1="120" y1="50" x2="120" y2="130"/>
+          <line class="barline" x1="240" y1="50" x2="240" y2="130"/>
+          <line class="barline" x1="360" y1="50" x2="360" y2="130"/>
+          <line class="barline" x1="480" y1="50" x2="480" y2="130"/>
+          <line class="barline" x1="580" y1="50" x2="580" y2="130"/>
+
+          <!-- C Major triad: C(below staff, ledger), E(line), G(line) -->
+          <line class="ledger-line" x1="160" y1="150" x2="200" y2="150"/>
+          <ellipse class="note-head open" cx="180" cy="150" rx="10" ry="7" transform="rotate(-15 180 150)"/>
+          <ellipse class="note-head open" cx="180" cy="130" rx="10" ry="7" transform="rotate(-15 180 130)"/>
+          <ellipse class="note-head open" cx="180" cy="110" rx="10" ry="7" transform="rotate(-15 180 110)"/>
+          <text class="note-label" x="180" y="178">C major</text>
+          <text class="note-label" x="180" y="194" style="font-size:11px">C – E – G</text>
+
+          <!-- C Minor triad: C, E♭, G -->
+          <line class="ledger-line" x1="280" y1="150" x2="320" y2="150"/>
+          <ellipse class="note-head open" cx="300" cy="150" rx="10" ry="7" transform="rotate(-15 300 150)"/>
+          <ellipse class="note-head open" cx="300" cy="130" rx="10" ry="7" transform="rotate(-15 300 130)"/>
+          <ellipse class="note-head open" cx="300" cy="110" rx="10" ry="7" transform="rotate(-15 300 110)"/>
+          <text class="clef-glyph" x="282" y="135" style="font-size:18px;font-style:normal">♭</text>
+          <text class="note-label" x="300" y="178">C minor</text>
+          <text class="note-label" x="300" y="194" style="font-size:11px">C – E♭ – G</text>
+
+          <!-- C Diminished triad: C, E♭, G♭ -->
+          <line class="ledger-line" x1="400" y1="150" x2="440" y2="150"/>
+          <ellipse class="note-head open" cx="420" cy="150" rx="10" ry="7" transform="rotate(-15 420 150)"/>
+          <ellipse class="note-head open" cx="420" cy="130" rx="10" ry="7" transform="rotate(-15 420 130)"/>
+          <ellipse class="note-head open" cx="420" cy="110" rx="10" ry="7" transform="rotate(-15 420 110)"/>
+          <text class="clef-glyph" x="402" y="135" style="font-size:18px;font-style:normal">♭</text>
+          <text class="clef-glyph" x="402" y="115" style="font-size:18px;font-style:normal">♭</text>
+          <text class="note-label" x="420" y="178">C dim</text>
+          <text class="note-label" x="420" y="194" style="font-size:11px">C – E♭ – G♭</text>
+
+          <!-- C Augmented triad: C, E, G♯ -->
+          <line class="ledger-line" x1="520" y1="150" x2="560" y2="150"/>
+          <ellipse class="note-head open" cx="540" cy="150" rx="10" ry="7" transform="rotate(-15 540 150)"/>
+          <ellipse class="note-head open" cx="540" cy="130" rx="10" ry="7" transform="rotate(-15 540 130)"/>
+          <ellipse class="note-head open" cx="540" cy="110" rx="10" ry="7" transform="rotate(-15 540 110)"/>
+          <text class="clef-glyph" x="522" y="115" style="font-size:18px;font-style:normal">♯</text>
+          <text class="note-label" x="540" y="178">C aug</text>
+          <text class="note-label" x="540" y="194" style="font-size:11px">C – E – G♯</text>
+        </svg>
+        <figcaption>The four triad qualities built on C — same root, same fifth-ish, different colours from changing the third and fifth.</figcaption>
+      </figure>
+
+      <figure class="diagram-figure">
+        <svg viewBox="0 0 280 110" class="keyboard-svg" role="img" aria-label="C major triad on a piano keyboard: C, E, G highlighted.">
+          <rect class="white-key is-root"   x="0"   y="0" width="40" height="100"/>
+          <rect class="white-key"           x="40"  y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="80"  y="0" width="40" height="100"/>
+          <rect class="white-key"           x="120" y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="160" y="0" width="40" height="100"/>
+          <rect class="white-key"           x="200" y="0" width="40" height="100"/>
+          <rect class="white-key"           x="240" y="0" width="40" height="100"/>
+
+          <rect class="black-key" x="28"  y="0" width="24" height="58"/>
+          <rect class="black-key" x="68"  y="0" width="24" height="58"/>
+          <rect class="black-key" x="148" y="0" width="24" height="58"/>
+          <rect class="black-key" x="188" y="0" width="24" height="58"/>
+          <rect class="black-key" x="228" y="0" width="24" height="58"/>
+
+          <text class="key-label" x="20"  y="92">C</text>
+          <text class="key-label" x="60"  y="92">D</text>
+          <text class="key-label" x="100" y="92">E</text>
+          <text class="key-label" x="140" y="92">F</text>
+          <text class="key-label" x="180" y="92">G</text>
+          <text class="key-label" x="220" y="92">A</text>
+          <text class="key-label" x="260" y="92">B</text>
+        </svg>
+        <figcaption>The C major triad on a keyboard: root (C), third (E), fifth (G).</figcaption>
+      </figure>
+
       <figure>
         <img src="/assets/key-notes.jpg" alt="Diagram showing scale notes for each major key." />
         <figcaption>Scale notes for each major key — the raw material from which triads are built.</figcaption>

@@ -71,6 +71,74 @@ export const prerender = false;
         <dd>Six eighth notes per measure, eighth note gets one beat. Common in marches and lively music.</dd>
       </dl>
 
+      <figure class="diagram-figure">
+        <svg viewBox="0 0 600 140" class="staff-svg" role="img" aria-label="One measure each in 4/4, 3/4, and 6/8 time, written on a staff.">
+          <!-- Staff (single line spans whole width) -->
+          <line class="staff-line" x1="20" y1="50"  x2="580" y2="50"/>
+          <line class="staff-line" x1="20" y1="65"  x2="580" y2="65"/>
+          <line class="staff-line" x1="20" y1="80"  x2="580" y2="80"/>
+          <line class="staff-line" x1="20" y1="95"  x2="580" y2="95"/>
+          <line class="staff-line" x1="20" y1="110" x2="580" y2="110"/>
+
+          <!-- Barlines partitioning the three measures -->
+          <line class="barline" x1="20"  y1="50" x2="20"  y2="110"/>
+          <line class="barline" x1="200" y1="50" x2="200" y2="110"/>
+          <line class="barline" x1="380" y1="50" x2="380" y2="110"/>
+          <line class="barline" x1="580" y1="50" x2="580" y2="110"/>
+
+          <!-- 4/4 measure -->
+          <text class="time-sig" x="42" y="78">4</text>
+          <text class="time-sig" x="42" y="108">4</text>
+          <g>
+            <ellipse class="note-head" cx="80"  cy="95" rx="7" ry="5" transform="rotate(-15 80 95)"/>
+            <line class="note-stem" x1="86" y1="93" x2="86" y2="55"/>
+            <ellipse class="note-head" cx="115" cy="95" rx="7" ry="5" transform="rotate(-15 115 95)"/>
+            <line class="note-stem" x1="121" y1="93" x2="121" y2="55"/>
+            <ellipse class="note-head" cx="150" cy="95" rx="7" ry="5" transform="rotate(-15 150 95)"/>
+            <line class="note-stem" x1="156" y1="93" x2="156" y2="55"/>
+            <ellipse class="note-head" cx="185" cy="95" rx="7" ry="5" transform="rotate(-15 185 95)"/>
+            <line class="note-stem" x1="191" y1="93" x2="191" y2="55"/>
+          </g>
+          <text class="note-label" x="130" y="135">4 quarter notes</text>
+
+          <!-- 3/4 measure -->
+          <text class="time-sig" x="222" y="78">3</text>
+          <text class="time-sig" x="222" y="108">4</text>
+          <g>
+            <ellipse class="note-head" cx="265" cy="95" rx="7" ry="5" transform="rotate(-15 265 95)"/>
+            <line class="note-stem" x1="271" y1="93" x2="271" y2="55"/>
+            <ellipse class="note-head" cx="310" cy="95" rx="7" ry="5" transform="rotate(-15 310 95)"/>
+            <line class="note-stem" x1="316" y1="93" x2="316" y2="55"/>
+            <ellipse class="note-head" cx="355" cy="95" rx="7" ry="5" transform="rotate(-15 355 95)"/>
+            <line class="note-stem" x1="361" y1="93" x2="361" y2="55"/>
+          </g>
+          <text class="note-label" x="310" y="135">3 quarter notes</text>
+
+          <!-- 6/8 measure (six beamed eighth notes, two groups of three) -->
+          <text class="time-sig" x="402" y="78">6</text>
+          <text class="time-sig" x="402" y="108">8</text>
+          <g>
+            <ellipse class="note-head" cx="440" cy="95" rx="6" ry="4" transform="rotate(-15 440 95)"/>
+            <line class="note-stem" x1="445" y1="93" x2="445" y2="60"/>
+            <ellipse class="note-head" cx="465" cy="95" rx="6" ry="4" transform="rotate(-15 465 95)"/>
+            <line class="note-stem" x1="470" y1="93" x2="470" y2="60"/>
+            <ellipse class="note-head" cx="490" cy="95" rx="6" ry="4" transform="rotate(-15 490 95)"/>
+            <line class="note-stem" x1="495" y1="93" x2="495" y2="60"/>
+            <line class="note-stem" x1="445" y1="60" x2="495" y2="60" stroke-width="3"/>
+
+            <ellipse class="note-head" cx="520" cy="95" rx="6" ry="4" transform="rotate(-15 520 95)"/>
+            <line class="note-stem" x1="525" y1="93" x2="525" y2="60"/>
+            <ellipse class="note-head" cx="545" cy="95" rx="6" ry="4" transform="rotate(-15 545 95)"/>
+            <line class="note-stem" x1="550" y1="93" x2="550" y2="60"/>
+            <ellipse class="note-head" cx="570" cy="95" rx="6" ry="4" transform="rotate(-15 570 95)"/>
+            <line class="note-stem" x1="575" y1="93" x2="575" y2="60"/>
+            <line class="note-stem" x1="525" y1="60" x2="575" y2="60" stroke-width="3"/>
+          </g>
+          <text class="note-label" x="500" y="135">6 eighth notes</text>
+        </svg>
+        <figcaption>One measure in each of three time signatures. The top number shows beats per measure; the bottom shows the note value of one beat.</figcaption>
+      </figure>
+
       <h2>Syncopation</h2>
       <p>Syncopation is a rhythmic technique where emphasis is placed on off-beats or weak beats within a phrase, creating tension and anticipation. Instead of accenting strong beats (typically 1 and 3 in 4/4), syncopated rhythms accent weak beats or the spaces between beats. This is achieved through tied notes, rests, and accents on upbeats.</p>
 

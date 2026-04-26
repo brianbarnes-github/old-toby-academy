@@ -31,6 +31,52 @@ export const prerender = false;
       <h3>Major and Minor Scales</h3>
       <p>The major scale is constructed with a pattern of whole steps and half steps (W–W–H–W–W–W–H), while the minor scale has different patterns for its natural, harmonic, and melodic forms. Major scales are often associated with brightness and positivity; minor scales with sadness or melancholy.</p>
 
+      <figure class="diagram-figure">
+        <svg viewBox="0 0 280 110" class="keyboard-svg" role="img" aria-label="Piano keyboard, one octave, with C major scale highlighted.">
+          <rect class="white-key is-root"   x="0"   y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="40"  y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="80"  y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="120" y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="160" y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="200" y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="240" y="0" width="40" height="100"/>
+
+          <rect class="black-key" x="28"  y="0" width="24" height="58"/>
+          <rect class="black-key" x="68"  y="0" width="24" height="58"/>
+          <rect class="black-key" x="148" y="0" width="24" height="58"/>
+          <rect class="black-key" x="188" y="0" width="24" height="58"/>
+          <rect class="black-key" x="228" y="0" width="24" height="58"/>
+
+          <text class="key-label" x="20"  y="92">C</text>
+          <text class="key-label" x="60"  y="92">D</text>
+          <text class="key-label" x="100" y="92">E</text>
+          <text class="key-label" x="140" y="92">F</text>
+          <text class="key-label" x="180" y="92">G</text>
+          <text class="key-label" x="220" y="92">A</text>
+          <text class="key-label" x="260" y="92">B</text>
+        </svg>
+        <figcaption>The C major scale on a keyboard — all white keys, with C as the tonic.</figcaption>
+      </figure>
+
+      <p>The pattern of whole and half steps that defines the major scale:</p>
+      <div class="step-pattern" aria-label="Major scale pattern: whole, whole, half, whole, whole, whole, half.">
+        <span class="step-cell note">C</span>
+        <span class="step-cell gap-w">W</span>
+        <span class="step-cell note">D</span>
+        <span class="step-cell gap-w">W</span>
+        <span class="step-cell note">E</span>
+        <span class="step-cell gap-h">H</span>
+        <span class="step-cell note">F</span>
+        <span class="step-cell gap-w">W</span>
+        <span class="step-cell note">G</span>
+        <span class="step-cell gap-w">W</span>
+        <span class="step-cell note">A</span>
+        <span class="step-cell gap-w">W</span>
+        <span class="step-cell note">B</span>
+        <span class="step-cell gap-h">H</span>
+        <span class="step-cell note">C</span>
+      </div>
+
       <h3>Chromaticism and Modes</h3>
       <p>Western music also uses the chromatic scale, which includes all twelve pitches within an octave — natural and altered alike. The modes (Ionian, Dorian, Phrygian, Lydian, Mixolydian, Aeolian, Locrian) offer alternative tonalities within the diatonic system, adding variety and color.</p>
 
@@ -62,6 +108,33 @@ export const prerender = false;
         <dt>Chromatic Scale</dt>
         <dd><span class="mono">A – A♯ – B – C – C♯ – D – D♯ – E – F – F♯ – G – G♯ – A</span></dd>
       </dl>
+
+      <figure class="diagram-figure">
+        <svg viewBox="0 0 280 110" class="keyboard-svg" role="img" aria-label="A natural minor scale on a piano keyboard.">
+          <rect class="white-key is-active" x="0"   y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="40"  y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="80"  y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="120" y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="160" y="0" width="40" height="100"/>
+          <rect class="white-key is-root"   x="200" y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="240" y="0" width="40" height="100"/>
+
+          <rect class="black-key" x="28"  y="0" width="24" height="58"/>
+          <rect class="black-key" x="68"  y="0" width="24" height="58"/>
+          <rect class="black-key" x="148" y="0" width="24" height="58"/>
+          <rect class="black-key" x="188" y="0" width="24" height="58"/>
+          <rect class="black-key" x="228" y="0" width="24" height="58"/>
+
+          <text class="key-label" x="20"  y="92">C</text>
+          <text class="key-label" x="60"  y="92">D</text>
+          <text class="key-label" x="100" y="92">E</text>
+          <text class="key-label" x="140" y="92">F</text>
+          <text class="key-label" x="180" y="92">G</text>
+          <text class="key-label" x="220" y="92">A</text>
+          <text class="key-label" x="260" y="92">B</text>
+        </svg>
+        <figcaption>A natural minor — same white keys as C major, but starting on A. C major and A minor are <em>relative</em> to each other.</figcaption>
+      </figure>
 
       <p>These notes form the foundation of melodies, harmonies, and chord progressions. Through varied combinations and arrangements, composers create the rich tapestry of sounds and expressions found in Western music.</p>
 
