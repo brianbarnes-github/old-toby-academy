@@ -4,6 +4,12 @@ interface Props {
   activeNav?: NavKey;
 }
 const { activeNav = null } = Astro.props;
+
+// locals are populated by middleware on SSR routes; undefined on static routes.
+const user = Astro.locals?.user ?? null;
+const profile = Astro.locals?.profile ?? null;
+const role = profile?.role ?? null;
+const displayName = profile?.character_name || user?.email?.split('@')[0] || null;
 ---
 
 <header class="masthead">
@@ -31,6 +37,60 @@ const { activeNav = null } = Astro.props;
       <a href="/courses" class:list={[{ active: activeNav === 'courses' }]}>Courses</a>
       <a href="/faculty" class:list={[{ active: activeNav === 'faculty' }]}>Faculty</a>
       <a href="/alumni" class:list={[{ active: activeNav === 'alumni' }]}>Alumni Hall</a>
+      {role === 'headmaster' && <a href="/admin">Admin</a>}
+      {user ? (
+        <span class="user-pill" data-role={role ?? 'student'}>
+          {displayName}<span class="user-role">· {role ?? '—'}</span>
+        </span>
+        <form method="POST" action="/api/logout" class="logout-form">
+          <button type="submit" class="logout-btn" title="Sign out">Sign out</button>
+        </form>
+      ) : (
+        <a href="/login" class="nav-signin">Sign in</a>
+      )}
     </nav>
   </div>
 </header>
+
+<style is:global>
+  .nav .user-pill {
+    color: var(--forest-deep);
+    border-bottom: none;
+    font-family: var(--body);
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0;
+    padding-left: 12px;
+    border-left: 1px solid var(--rule-soft);
+  }
+  .nav .user-pill[data-role="faculty"] { color: #8a6e1d; }
+  .nav .user-pill[data-role="headmaster"] { color: var(--oxblood); font-weight: 600; }
+  .nav .user-role {
+    margin-left: 6px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+
+  .nav .logout-form { display: inline; }
+  .nav .logout-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--ink-soft);
+    font-family: var(--display);
+    font-size: 1.05rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0 0 2px;
+    cursor: pointer;
+  }
+  .nav .logout-btn:hover {
+    color: var(--oxblood);
+    border-bottom-color: var(--gold);
+  }
+
+  .nav .nav-signin {
+    color: var(--oxblood);
+    border-bottom-color: var(--gold);
+  }
+</style>

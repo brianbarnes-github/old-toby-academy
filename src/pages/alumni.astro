@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = false;
 ---
 
 <BaseLayout
@@ -104,17 +106,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           </ul>
         </div>
         <div>
-          <h3>Joining the Hall</h3>
-          <p class="small">If you agree to abide by the rules below and contribute to a positive community experience, message a faculty member by direct message and access will be granted.</p>
-          <form class="access-form" name="alumni-access" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/thanks">
-            <input type="hidden" name="form-name" value="alumni-access" />
-            <p hidden><label>Don't fill this out: <input name="bot-field" /></label></p>
-            <label>Character name<input type="text" name="character" required /></label>
-            <label>Server<input type="text" name="server" /></label>
-            <label>How to reach you<input type="text" name="contact" required placeholder="email or in-game" /></label>
-            <label>A few words on why<textarea name="note" rows="3"></textarea></label>
-            <button class="btn btn-ghost" type="submit">Send Request</button>
-          </form>
+          <h3>You are inside the Hall</h3>
+          <p class="small">Welcome, alumnus. Read the rules below and contribute kindly. Custom-MIDI requests, band recruitment, and periodic projects all live here. Headmaster can be reached for new invitations.</p>
         </div>
         <div>
           <h3>Today in the Hall</h3>
