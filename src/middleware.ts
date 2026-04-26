@@ -120,10 +120,24 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return redirect('/welcome');
   }
 
+  // Helper for diagnostic 403 responses while RBAC is being debugged.
+  const forbidden = (need: string[] | string) => {
+    const needList = Array.isArray(need) ? need.join(', ') : need;
+    const have = [...permissions];
+    const body = [
+      "Forbidden — you don't have access to this area.",
+      '',
+      `Required (any of): ${needList}`,
+      `You have: ${have.length > 0 ? have.join(', ') : '(none)'}`,
+      `User id: ${user?.id ?? '(none)'}`,
+    ].join('\n');
+    return new Response(body, { status: 403, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  };
+
   // /admin index — pass if user has any admin-area permission
   if (pathname === '/admin') {
     if (!hasAdminAreaPermission(permissions)) {
-      return new Response("Forbidden — you don't have access to this area.", { status: 403 });
+      return forbidden('any admin-area permission (admin.*, tokens.*, users.*, roles.*, audit.*)');
     }
     return next();
   }
@@ -133,7 +147,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (required) {
     const allowed = required.some((slug) => permissions.has(slug));
     if (!allowed) {
-      return new Response("Forbidden — you don't have access to this area.", { status: 403 });
+      return forbidden(required);
     }
   }
 
