@@ -1,0 +1,161 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CsrfField from '../../../components/CsrfField.astro';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+const { courseSlug } = Astro.params;
+if (!courseSlug) return Astro.redirect('/courses');
+
+const { data: course } = await supabase
+  .from('courses')
+  .select('*')
+  .eq('slug', courseSlug)
+  .maybeSingle();
+
+if (!course) return Astro.redirect('/courses?error=' + encodeURIComponent('Course not found.'));
+
+const userId = Astro.locals.user?.id;
+const isAuthor = userId !== undefined && course.created_by === userId;
+const isHeadmaster = Astro.locals.profile?.role === 'headmaster';
+if (!isAuthor && !isHeadmaster) {
+  return new Response("Forbidden — you don't own this course.", { status: 403 });
+}
+
+const error = Astro.url.searchParams.get('error');
+const ok = Astro.url.searchParams.get('ok');
+
+const { data: classes } = await supabase
+  .from('classes')
+  .select('id, slug, title, order_index, published_at, closed_at')
+  .eq('course_id', course.id)
+  .order('order_index');
+---
+
+<BaseLayout
+  title={`Edit ${course.title} · Old Toby Academy`}
+  description={`Edit the course ${course.title}.`}
+  activeNav="courses"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/courses">Courses</a><span>›</span>
+      <a href={`/courses/${course.slug}`}>{course.title}</a><span>›</span>
+      <em>Edit</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Author</div>
+      <h1>Edit course</h1>
+    </div>
+
+    {error && <div class="auth-err">{error}</div>}
+    {ok === 'updated'      && <div class="auth-ok">Saved.</div>}
+    {ok === 'created'      && <div class="auth-ok">Course created.</div>}
+    {ok === 'published'    && <div class="auth-ok">Course published.</div>}
+    {ok === 'unpublished'  && <div class="auth-ok">Course unpublished.</div>}
+
+    <div class="course-edit-grid">
+      <form class="auth-form course-form" method="POST" action="/api/courses/save">
+        <CsrfField />
+        <input type="hidden" name="course_id" value={course.id} />
+        <label>Slug
+          <input type="text" name="slug" required pattern="[a-z0-9][a-z0-9-]*" maxlength="64" value={course.slug} />
+        </label>
+        <label>Title
+          <input type="text" name="title" required maxlength="120" value={course.title} />
+        </label>
+        <label>Summary
+          <input type="text" name="summary" maxlength="200" value={course.summary ?? ''} />
+        </label>
+        <label>Description (markdown)
+          <textarea name="description" rows="10">{course.description ?? ''}</textarea>
+        </label>
+        <label>Order mode
+          <select name="order_mode" required>
+            <option value="all"        selected={course.order_mode === 'all'}>All-at-once</option>
+            <option value="sequential" selected={course.order_mode === 'sequential'}>Sequential</option>
+          </select>
+        </label>
+        <button class="btn" type="submit">Save changes</button>
+      </form>
+
+      <aside class="course-edit-side">
+        <div class="course-side-panel">
+          <h3>Status</h3>
+          <p>
+            {course.published_at !== null
+              ? <><span class="course-status-chip course-status-published">published</span> {new Date(course.published_at).toLocaleDateString()}</>
+              : <span class="course-status-chip course-status-draft">draft</span>}
+          </p>
+          <form method="POST" action="/api/courses/publish" style="display:inline;">
+            <CsrfField />
+            <input type="hidden" name="course_id" value={course.id} />
+            <input type="hidden" name="publish" value={course.published_at === null ? 'true' : 'false'} />
+            <button class="btn btn-ghost" type="submit">
+              {course.published_at === null ? 'Publish' : 'Unpublish'}
+            </button>
+          </form>
+        </div>
+
+        <div class="course-side-panel">
+          <h3>Classes ({(classes ?? []).length})</h3>
+          {(classes ?? []).length === 0 ? (
+            <p class="muted italic">None yet.</p>
+          ) : (
+            <ol class="side-class-list">
+              {classes!.map((c: any) => (
+                <li>
+                  <a href={`/courses/${course.slug}/${c.slug}/edit`}>{c.title}</a>
+                  <div class="side-class-meta">
+                    {c.published_at === null && <span class="course-status-chip course-status-draft">draft</span>}
+                    {c.closed_at !== null     && <span class="course-status-chip course-status-published">complete</span>}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+          <p style="margin-top: 12px;">
+            <a class="btn btn-ghost" href={`/courses/${course.slug}/classes/new`}>+ Add class</a>
+          </p>
+        </div>
+
+        <div class="course-side-panel danger-section">
+          <h3>Delete</h3>
+          <p class="muted italic">Deleting a course also deletes its classes. There's no undo.</p>
+          <form method="POST" action="/api/courses/delete" onsubmit="return confirm('Delete this course and all its classes? This cannot be undone.');">
+            <CsrfField />
+            <input type="hidden" name="course_id" value={course.id} />
+            <button class="btn btn-ghost" type="submit" style="border-color: var(--oxblood); color: var(--oxblood);">Delete course</button>
+          </form>
+        </div>
+      </aside>
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .course-edit-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+  .course-edit-side { display: flex; flex-direction: column; gap: 20px; }
+  .course-side-panel {
+    padding: 20px 24px;
+    background: rgba(255, 250, 235, 0.4);
+    border: 1px solid var(--rule-soft);
+  }
+  .course-side-panel h3 { font-style: italic; font-weight: 500; margin-bottom: 8px; }
+  .side-class-list { list-style: none; padding: 0; margin: 0; }
+  .side-class-list li { padding: 6px 0; border-bottom: 1px dotted var(--rule-soft); }
+  .side-class-list li:last-child { border-bottom: none; }
+  .side-class-meta { display: inline-flex; gap: 4px; margin-left: 8px; }
+
+  @media (max-width: 880px) {
+    .course-edit-grid { grid-template-columns: 1fr; }
+  }
+</style>
