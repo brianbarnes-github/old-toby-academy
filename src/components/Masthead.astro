@@ -58,6 +58,7 @@ for (const slug of permissions) {
           <span class="user-pill-text">{displayName}<span class="user-role">· {role ?? '—'}</span></span>
         </a>
         <form method="POST" action="/api/logout" class="logout-form">
+          <input type="hidden" name="csrf_token" value={Astro.locals?.csrfToken ?? ''} />
           <button type="submit" class="logout-btn" title="Sign out">Sign out</button>
         </form>
       ) : (

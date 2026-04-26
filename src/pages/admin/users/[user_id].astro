@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CsrfField from '../../../components/CsrfField.astro';
 
 export const prerender = false;
 
@@ -86,6 +87,7 @@ const availableRoles = (allRoles ?? []).filter((r: any) => !heldRoleIds.has(r.id
               {mr.roles.is_system && <span class="system-flag">system</span>}
               <span class="role-list-meta mono small">granted {new Date(mr.granted_at).toLocaleDateString()}</span>
               <form method="POST" action="/api/admin/revoke-role" class="inline-form" onsubmit="return confirm('Remove this role from the member?');">
+                <CsrfField />
                 <input type="hidden" name="user_id" value={user_id} />
                 <input type="hidden" name="role_id" value={mr.roles.id} />
                 <input type="hidden" name="back" value={`/admin/users/${user_id}`} />
@@ -103,6 +105,7 @@ const availableRoles = (allRoles ?? []).filter((r: any) => !heldRoleIds.has(r.id
       <div class="admin-section">
         <h2>Add a role</h2>
         <form method="POST" action="/api/admin/grant-role" class="grant-role-form">
+          <CsrfField />
           <input type="hidden" name="user_id" value={user_id} />
           <input type="hidden" name="back" value={`/admin/users/${user_id}`} />
           <label>Pick a role
@@ -143,6 +146,7 @@ const availableRoles = (allRoles ?? []).filter((r: any) => !heldRoleIds.has(r.id
         </div>
 
         <form method="POST" action="/api/admin/reset-password" onsubmit="return confirm('Reset this member’s password? Their current password will stop working immediately.');">
+          <CsrfField />
           <input type="hidden" name="user_id" value={user_id} />
           <input type="hidden" name="back" value={`/admin/users/${user_id}`} />
           <button class="btn btn-ghost" type="submit" style="border-color: var(--oxblood); color: var(--oxblood);">Reset password</button>

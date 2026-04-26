@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import CsrfField from '../components/CsrfField.astro';
 
 export const prerender = false;
 
@@ -22,6 +23,7 @@ const next = Astro.url.searchParams.get('next') ?? '/courses';
       {error && <div class="auth-err">{error}</div>}
 
       <form class="auth-form" method="POST" action="/api/login">
+        <CsrfField />
         <input type="hidden" name="next" value={next} />
         <input type="hidden" name="variant" value="student" />
         <label>Character name<input type="text" name="name" required value={name} autocomplete="username" placeholder="e.g. Vydor" /></label>

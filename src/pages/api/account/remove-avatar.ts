@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '../../../lib/supabase/server';
+import { verifyCsrf } from '../../../lib/csrf';
 
 export const prerender = false;
 
@@ -9,10 +10,13 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
   const user = locals.user;
   if (!user) return redirect('/login');
 
+  const formData = await request.formData();
+  if (!verifyCsrf(formData, cookies)) {
+    return new Response('Session expired. Refresh the page and try again.', { status: 403 });
+  }
+
   const supabase = createSupabaseServerClient(cookies, request.headers);
 
-  // Best-effort delete of any avatar file in the user's folder. Don't
-  // fail if a particular extension wasn't there.
   await supabase.storage
     .from('avatars')
     .remove(EXTENSIONS.map((ext) => `${user.id}/avatar.${ext}`));

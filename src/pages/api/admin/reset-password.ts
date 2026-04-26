@@ -1,11 +1,15 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '../../../lib/supabase/server';
 import { createSupabaseAdminClient, generateTempPassword } from '../../../lib/supabase/admin';
+import { verifyCsrf } from '../../../lib/csrf';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => {
   const formData = await request.formData();
+  if (!verifyCsrf(formData, cookies)) {
+    return new Response('Session expired. Refresh the page and try again.', { status: 403 });
+  }
   const targetUserId = String(formData.get('user_id') ?? '').trim();
   const back = String(formData.get('back') ?? `/admin/users/${targetUserId}`);
 

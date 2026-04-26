@@ -11,6 +11,8 @@ declare global {
       profile: Profile | null;
       /** Set of permission slugs the current user holds (empty if unauthenticated). */
       permissions: Set<string>;
+      /** Per-session CSRF token. Embed in every mutating form via <CsrfField />. */
+      csrfToken: string;
     }
   }
 }

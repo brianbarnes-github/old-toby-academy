@@ -1,5 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { createSupabaseServerClient, type Profile } from './lib/supabase/server';
+import { ensureCsrfCookie } from './lib/csrf';
 
 // Routes that anyone can visit without a session.
 const PUBLIC_ROUTES = new Set<string>([
@@ -100,6 +101,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   locals.user = user;
   locals.profile = profile;
   locals.permissions = permissions;
+  locals.csrfToken = ensureCsrfCookie(cookies);
 
   const pathname = url.pathname.replace(/\/$/, '') || '/';
 

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '../../lib/supabase/server';
+import { verifyCsrf } from '../../lib/csrf';
 
 export const prerender = false;
 
@@ -14,6 +15,9 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
   const requireHopes = profile?.role === 'student';
 
   const formData = await request.formData();
+  if (!verifyCsrf(formData, cookies)) {
+    return new Response('Session expired. Refresh the page and try again.', { status: 403 });
+  }
   const musicLevel = String(formData.get('music_level') ?? '').trim();
   const ingameLevel = String(formData.get('ingame_music_level') ?? '').trim();
   const technicalLevel = String(formData.get('technical_level') ?? '').trim();

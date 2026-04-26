@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import CsrfField from '../components/CsrfField.astro';
 
 export const prerender = false;
 
@@ -67,6 +68,7 @@ const characterName = profile.character_name ?? 'scribe';
           <p class="muted italic" style="margin-top: 24px;">Violations may result in warnings, post deletions, or bans, depending on severity. Decisions by moderators are final.</p>
 
           <form method="POST" action="/api/accept-rules" class="welcome-form">
+            <CsrfField />
             <label class="welcome-checkbox">
               <input type="checkbox" name="agree" required />
               <span>I have read the Rules of Conduct and agree to abide by them.</span>
@@ -85,6 +87,7 @@ const characterName = profile.character_name ?? 'scribe';
             : 'A few questions to calibrate. You can refine these later from your account.'}</p>
 
           <form method="POST" action="/api/complete-profile" class="auth-form welcome-profile-form">
+            <CsrfField />
             {[
               { name: 'music_level',        label: 'Music experience (general)' },
               { name: 'ingame_music_level', label: 'In-game music experience' },
@@ -132,6 +135,7 @@ const characterName = profile.character_name ?? 'scribe';
             A few suggestions for your first hour: read <a href="/courses/abc-101">ABC 101</a>, peruse the <a href="/faculty">Fellowship</a>, and step into <a href="/alumni">Alumni Hall</a> to see what others have made.
           </p>
           <form method="POST" action="/api/finish-onboarding" class="welcome-form" style="margin-top: 32px;">
+            <CsrfField />
             <button class="btn" type="submit">Begin Reading →</button>
           </form>
         </section>

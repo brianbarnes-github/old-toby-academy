@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CsrfField from '../../../components/CsrfField.astro';
 
 export const prerender = false;
 
@@ -36,6 +37,7 @@ const { data: roles, error: listErr } = await supabase
     <div class="admin-section">
       <h2>Create a new role</h2>
       <form class="auth-form create-role-form" method="POST" action="/api/admin/create-role">
+        <CsrfField />
         <label>Slug (lowercase, hyphens; e.g. <code>concert-conductor</code>)
           <input type="text" name="slug" required pattern="[a-z0-9][a-z0-9-]*" maxlength="48" />
         </label>
