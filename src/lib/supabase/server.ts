@@ -24,7 +24,8 @@ export type Permission =
   | 'users.list'
   | 'users.assign_roles'
   | 'users.reset_password'
-  | 'roles.manage';
+  | 'roles.manage'
+  | 'progress.read';
 
 export type ExperienceLevel = 'none' | 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
