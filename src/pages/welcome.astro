@@ -1,0 +1,247 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const profile = Astro.locals.profile;
+const user = Astro.locals.user;
+
+// Should never reach here without a session, but guard anyway.
+if (!user || !profile) {
+  return Astro.redirect('/login');
+}
+
+// Already onboarded? Skip the wizard.
+if (profile.onboarding_completed_at) {
+  return Astro.redirect('/courses');
+}
+
+const requestedStep = Number(Astro.url.searchParams.get('step') ?? '0');
+const error = Astro.url.searchParams.get('error');
+
+// Determine which step to show based on profile state + requested step.
+// Step 1 (rules) is mandatory. Steps 2 and 3 are reachable freely once rules accepted.
+let step: 1 | 2 | 3;
+if (!profile.rules_accepted_at) {
+  step = 1;
+} else if (requestedStep === 3) {
+  step = 3;
+} else {
+  step = 2;
+}
+
+const characterName = profile.character_name ?? 'scribe';
+---
+
+<BaseLayout
+  title="Welcome · Old Toby Academy"
+  description="The Hall is opening to you. A few small steps before the lessons begin."
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="welcome-wrap">
+      <div class="welcome-progress">
+        <span class={`welcome-pip ${step >= 1 ? 'done' : ''} ${step === 1 ? 'current' : ''}`}>I.</span>
+        <span class="welcome-pip-rule"></span>
+        <span class={`welcome-pip ${step >= 2 ? 'done' : ''} ${step === 2 ? 'current' : ''}`}>II.</span>
+        <span class="welcome-pip-rule"></span>
+        <span class={`welcome-pip ${step >= 3 ? 'done' : ''} ${step === 3 ? 'current' : ''}`}>III.</span>
+      </div>
+
+      {error && <div class="auth-err">{error}</div>}
+
+      {step === 1 && (
+        <section class="welcome-panel">
+          <div class="eyebrow">Step One · The Rules</div>
+          <h1>Read, then agree.</h1>
+          <p class="kicker">The Hall is for everyone, and is kept that way by everyone. Five short rules — please read them before crossing the threshold.</p>
+
+          <ol class="rules-list">
+            <li><strong>Stay on topic.</strong> Posts in the channel they belong; conversations not hijacked.</li>
+            <li><strong>Constructive criticism.</strong> Feedback is offered with an alternative attached. Negativity without solution is not feedback.</li>
+            <li><strong>Respectful communication.</strong> No personal attacks, no harassment. Polite language at all times.</li>
+            <li><strong>Appropriate language.</strong> No profanity. A tone suitable for all ages and backgrounds.</li>
+            <li><strong>Engage positively.</strong> Encourage one another. Foster a welcoming, inclusive environment.</li>
+          </ol>
+
+          <p class="muted italic" style="margin-top: 24px;">Violations may result in warnings, post deletions, or bans, depending on severity. Decisions by moderators are final.</p>
+
+          <form method="POST" action="/api/accept-rules" class="welcome-form">
+            <label class="welcome-checkbox">
+              <input type="checkbox" name="agree" required />
+              <span>I have read the Rules of Conduct and agree to abide by them.</span>
+            </label>
+            <button class="btn" type="submit">I agree — proceed</button>
+          </form>
+        </section>
+      )}
+
+      {step === 2 && (
+        <section class="welcome-panel">
+          <div class="eyebrow">Step Two · Your Profile</div>
+          <h1>Tell the faculty about yourself.</h1>
+          <p class="kicker">Optional, but it helps us place you with the right cohort and band. You can fill any of these later from your account.</p>
+
+          <form method="POST" action="/api/complete-profile" class="auth-form welcome-profile-form">
+            <label>Your favoured instrument
+              <input type="text" name="instrument" placeholder="e.g. Lute of Ages" value={profile.instrument ?? ''} />
+            </label>
+            <label>Why are you joining?
+              <textarea name="why_joining" rows="3" placeholder="A few words on what brought you to the Hall.">{profile.why_joining ?? ''}</textarea>
+            </label>
+            <label>Your experience so far
+              <textarea name="experience" rows="3" placeholder="Have you transcribed before? Played in a band? Anything we should know.">{profile.experience ?? ''}</textarea>
+            </label>
+            <div class="welcome-actions">
+              <button class="btn" type="submit">Save &amp; continue</button>
+              <a class="btn btn-ghost" href="/welcome?step=3">Skip for now</a>
+            </div>
+          </form>
+        </section>
+      )}
+
+      {step === 3 && (
+        <section class="welcome-panel welcome-splash">
+          <div class="eyebrow gold">Step Three · Welcome</div>
+          <h1>Welcome to the Hall, {characterName}.</h1>
+          <div class="welcome-ornament">❦</div>
+          <p class="welcome-splash-body">
+            Your name is in the ledger. The lutes are tuned, the doors are open, and a great deal of music waits to be made.
+          </p>
+          <p class="welcome-splash-body muted italic">
+            A few suggestions for your first hour: read <a href="/courses/abc-101">ABC 101</a>, peruse the <a href="/faculty">Fellowship</a>, and step into <a href="/alumni">Alumni Hall</a> to see what others have made.
+          </p>
+          <form method="POST" action="/api/finish-onboarding" class="welcome-form" style="margin-top: 32px;">
+            <button class="btn" type="submit">Begin Reading →</button>
+          </form>
+        </section>
+      )}
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .welcome-wrap {
+    max-width: 720px;
+    margin: 64px auto;
+  }
+
+  .welcome-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 36px;
+    font-family: var(--display);
+    color: var(--ink-soft);
+  }
+  .welcome-pip {
+    width: 44px; height: 44px;
+    border: 1px solid var(--rule);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-style: italic;
+    font-size: 1.05rem;
+    background: rgba(255, 250, 235, 0.5);
+  }
+  .welcome-pip.done { color: var(--gold); border-color: var(--gold); }
+  .welcome-pip.current {
+    background: var(--gold);
+    color: var(--ink);
+    border-color: var(--gold);
+    font-weight: 700;
+  }
+  .welcome-pip-rule {
+    flex: 0 0 48px;
+    border-top: 1px solid var(--rule-soft);
+  }
+
+  .welcome-panel {
+    padding: 56px 48px;
+    background: linear-gradient(180deg, rgba(255,250,235,0.6), rgba(217,195,136,0.18));
+    border: 1px solid var(--rule);
+    box-shadow: 0 0 0 6px var(--parchment), 0 0 0 7px var(--rule-soft);
+  }
+  .welcome-panel h1 {
+    font-style: italic; font-weight: 500;
+    font-size: clamp(2rem, 4vw, 2.6rem);
+    margin-bottom: 8px;
+  }
+  .welcome-panel .kicker { margin-bottom: 24px; }
+
+  .rules-list {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+    counter-reset: rule;
+  }
+  .rules-list li {
+    counter-increment: rule;
+    padding: 14px 0 14px 56px;
+    position: relative;
+    border-bottom: 1px dotted var(--rule-soft);
+  }
+  .rules-list li:last-child { border-bottom: none; }
+  .rules-list li::before {
+    content: counter(rule, upper-roman) ".";
+    position: absolute;
+    left: 0; top: 12px;
+    font-family: var(--display);
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 1.15rem;
+  }
+  .rules-list strong { color: var(--forest-deep); }
+
+  .welcome-form { margin-top: 24px; }
+  .welcome-checkbox {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 16px 18px;
+    background: rgba(255, 250, 235, 0.7);
+    border: 1px solid var(--rule-soft);
+    margin-bottom: 16px;
+    cursor: pointer;
+    font-family: var(--body);
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink);
+  }
+  .welcome-checkbox input[type="checkbox"] {
+    width: 20px; height: 20px;
+    margin-top: 2px;
+    accent-color: var(--gold);
+    cursor: pointer;
+  }
+  .welcome-checkbox span { flex: 1; }
+
+  .welcome-profile-form textarea,
+  .welcome-profile-form input[type="text"] {
+    font-family: var(--body); font-size: 1rem;
+    padding: 10px 12px;
+    background: rgba(255, 250, 235, 0.7);
+    border: 1px solid var(--rule-soft); border-radius: 2px;
+    color: var(--ink); letter-spacing: 0; text-transform: none;
+    width: 100%;
+  }
+  .welcome-profile-form textarea:focus,
+  .welcome-profile-form input[type="text"]:focus {
+    outline: none; border-color: var(--gold); background: rgba(255, 250, 235, 0.95);
+  }
+  .welcome-profile-form textarea { resize: vertical; }
+
+  .welcome-actions {
+    display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px;
+  }
+
+  .welcome-splash { text-align: center; }
+  .welcome-splash .welcome-ornament {
+    color: var(--gold);
+    font-size: 2.4rem;
+    margin: 28px 0 20px;
+  }
+  .welcome-splash-body {
+    max-width: 56ch;
+    margin: 0 auto 14px;
+    font-size: 1.06rem;
+  }
+</style>

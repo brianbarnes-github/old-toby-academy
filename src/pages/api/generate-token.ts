@@ -7,6 +7,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const formData = await request.formData();
   const role = String(formData.get('role') ?? 'student').trim();
   const expiresDays = Number(formData.get('expires_days') ?? 30);
+  const notes = String(formData.get('notes') ?? '').trim() || null;
 
   if (role !== 'student' && role !== 'faculty') {
     return redirect('/admin/tokens?error=' + encodeURIComponent('Role must be student or faculty.'));
@@ -21,6 +22,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const { data, error } = await supabase.rpc('generate_invite_token', {
     p_role: role,
     p_expires_days: expiresDays,
+    p_notes: notes,
   });
 
   if (error || !data) {

@@ -1,0 +1,164 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+const filter = Astro.url.searchParams.get('event_type') ?? '';
+
+let query = supabase
+  .from('entries')
+  .select('id, user_id, event_type, details, occurred_at')
+  .order('occurred_at', { ascending: false })
+  .limit(200);
+
+if (filter) {
+  query = query.eq('event_type', filter);
+}
+
+const { data: entries, error: entriesErr } = await query;
+
+// Look up character_name + role for each user_id in one round-trip.
+const userIds = Array.from(new Set((entries ?? []).map((e: any) => e.user_id).filter(Boolean)));
+const profileMap: Record<string, { character_name: string | null; role: string }> = {};
+
+if (userIds.length > 0) {
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('user_id, character_name, role')
+    .in('user_id', userIds);
+  for (const p of profiles ?? []) {
+    profileMap[p.user_id] = { character_name: p.character_name, role: p.role };
+  }
+}
+
+const eventTypes = ['token_redeemed', 'rules_accepted', 'profile_updated', 'onboarding_completed'];
+
+function formatDetails(d: any): string {
+  if (!d || Object.keys(d).length === 0) return '—';
+  return Object.entries(d)
+    .map(([k, v]) => {
+      if (v === null || v === undefined) return null;
+      if (Array.isArray(v)) return `${k}: ${v.join(', ')}`;
+      return `${k}: ${v}`;
+    })
+    .filter(Boolean)
+    .join(' · ');
+}
+---
+
+<BaseLayout
+  title="Audit Log · Admin · Old Toby Academy"
+  description="Headmaster's audit log of academy events."
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/admin">Admin</a><span>›</span>
+      <em>Audit Log</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Headmaster's Study</div>
+      <h1>Audit Log</h1>
+      <p class="kicker">A timestamped record of every meaningful event in the Hall — token redemptions, rules acceptance, profile updates, and onboarding completion. Most recent first.</p>
+    </div>
+
+    <div class="log-filters">
+      <span class="log-filter-label">Filter:</span>
+      <a href="/admin/log" class={`log-filter ${!filter ? 'active' : ''}`}>All</a>
+      {eventTypes.map((t) => (
+        <a href={`/admin/log?event_type=${t}`} class={`log-filter ${filter === t ? 'active' : ''}`}>{t.replace(/_/g, ' ')}</a>
+      ))}
+    </div>
+
+    {entriesErr ? (
+      <p class="auth-err">Could not load log: {entriesErr.message}</p>
+    ) : entries && entries.length > 0 ? (
+      <table class="nice-table log-table">
+        <thead>
+          <tr>
+            <th style="width:18%;">When</th>
+            <th style="width:22%;">Member</th>
+            <th style="width:18%;">Event</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((e: any) => {
+            const profile = e.user_id ? profileMap[e.user_id] : null;
+            return (
+              <tr>
+                <td class="mono log-when">{new Date(e.occurred_at).toLocaleString()}</td>
+                <td>
+                  {profile ? (
+                    <>
+                      <span class={`log-name log-name-${profile.role}`}>{profile.character_name ?? '(no name)'}</span>
+                      <span class="log-role">· {profile.role}</span>
+                    </>
+                  ) : (
+                    <span class="muted">(deleted user)</span>
+                  )}
+                </td>
+                <td><span class="log-event">{e.event_type.replace(/_/g, ' ')}</span></td>
+                <td class="log-details">{formatDetails(e.details)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    ) : (
+      <p class="muted italic">No entries yet{filter ? ` for "${filter.replace(/_/g, ' ')}"` : ''}.</p>
+    )}
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .log-filters {
+    display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+    margin: 0 0 24px;
+    font-family: var(--display);
+    font-size: 0.9rem;
+  }
+  .log-filter-label {
+    font-size: 0.78rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-soft);
+    margin-right: 8px;
+  }
+  .log-filter {
+    padding: 4px 12px;
+    border: 1px solid var(--rule-soft);
+    border-radius: 2px;
+    color: var(--ink-soft);
+    background: rgba(255, 250, 235, 0.4);
+    text-transform: capitalize;
+    font-size: 0.85rem;
+  }
+  .log-filter:hover { border-color: var(--gold); }
+  .log-filter.active {
+    background: var(--gold);
+    color: var(--ink);
+    border-color: var(--gold);
+    font-weight: 600;
+  }
+
+  .log-table { font-size: 0.92rem; }
+  .log-table .log-when { font-size: 0.82rem; color: var(--ink-soft); white-space: nowrap; }
+  .log-table .log-name { font-weight: 600; }
+  .log-table .log-name-student { color: #466928; }
+  .log-table .log-name-faculty { color: #8a6e1d; }
+  .log-table .log-name-headmaster { color: var(--oxblood); }
+  .log-table .log-role { font-size: 0.78rem; color: var(--ink-soft); margin-left: 4px; font-style: italic; }
+  .log-table .log-event {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--forest-deep);
+    background: rgba(31, 58, 46, 0.06);
+    padding: 2px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .log-table .log-details { font-style: italic; color: var(--ink-soft); font-size: 0.88rem; }
+</style>

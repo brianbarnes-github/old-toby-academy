@@ -16,6 +16,11 @@ export interface Profile {
   character_name: string | null;
   server: string | null;
   created_at: string;
+  rules_accepted_at: string | null;
+  onboarding_completed_at: string | null;
+  instrument: string | null;
+  why_joining: string | null;
+  experience: string | null;
 }
 
 export function createSupabaseServerClient(cookies: AstroCookies, headers: Headers) {

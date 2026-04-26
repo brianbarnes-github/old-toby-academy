@@ -20,6 +20,16 @@ const PUBLIC_API_ROUTES = new Set<string>([
   '/api/redeem-token',
 ]);
 
+// Routes a not-yet-onboarded user (rules_accepted_at is null) can
+// still reach. Everything else bounces them to /welcome.
+const ONBOARDING_ROUTES = new Set<string>([
+  '/welcome',
+  '/api/accept-rules',
+  '/api/complete-profile',
+  '/api/finish-onboarding',
+  '/api/logout',
+]);
+
 // Routes only headmaster can reach.
 const HEADMASTER_PREFIXES = ['/admin'];
 
@@ -58,9 +68,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const pathname = url.pathname.replace(/\/$/, '') || '/';
 
-  // Logged-in user hitting login/signup → bounce to /courses
+  // Logged-in user hitting login/signup → bounce to where they should be next
   if (user && (pathname === '/login' || pathname === '/faculty-login' || pathname === '/signup')) {
-    return redirect('/courses');
+    return redirect(profile?.rules_accepted_at ? '/courses' : '/welcome');
   }
 
   // Public routes always pass through
@@ -72,6 +82,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (!user) {
     const next_param = encodeURIComponent(url.pathname + url.search);
     return redirect(`/login?next=${next_param}`);
+  }
+
+  // Onboarding gate: a logged-in user who hasn't accepted the rules
+  // can only reach the welcome wizard and its API handlers.
+  if (!profile?.rules_accepted_at && !ONBOARDING_ROUTES.has(pathname)) {
+    return redirect('/welcome');
   }
 
   // Headmaster-only routes

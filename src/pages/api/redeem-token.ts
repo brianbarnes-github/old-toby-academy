@@ -55,7 +55,9 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   });
   if (redeemErr) return fail(redirect, `Could not redeem token: ${redeemErr.message}`, fields);
 
-  return redirect('/courses');
+  // New members go through /welcome (rules → profile → splash) before
+  // reaching the curriculum. Middleware also enforces this.
+  return redirect('/welcome');
 };
 
 export const GET: APIRoute = async ({ redirect }) => redirect('/signup');
