@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const error = Astro.url.searchParams.get('error');
+const email = Astro.url.searchParams.get('email') ?? '';
+const next = Astro.url.searchParams.get('next') ?? '/courses';
+---
+
+<BaseLayout
+  title="Faculty Sign In · Old Toby Academy"
+  description="Faculty entrance to the academy."
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="auth-wrap auth-wrap-faculty">
+      <div class="eyebrow gold">Faculty Entrance</div>
+      <h1>Welcome back, master.</h1>
+      <p class="kicker">For faculty and the headmaster. Students sign in at <a href="/login">the members' entrance</a>.</p>
+
+      {error && <div class="auth-err">{error}</div>}
+
+      <form class="auth-form" method="POST" action="/api/login">
+        <input type="hidden" name="next" value={next} />
+        <input type="hidden" name="variant" value="faculty" />
+        <label>Email<input type="email" name="email" required value={email} autocomplete="email" /></label>
+        <label>Password<input type="password" name="password" required autocomplete="current-password" /></label>
+        <button class="btn" type="submit">Sign in</button>
+      </form>
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .auth-wrap-faculty {
+    background: linear-gradient(180deg, rgba(31, 58, 46, 0.08), rgba(168, 132, 58, 0.12));
+    border-color: var(--gold);
+    box-shadow: 0 0 0 6px var(--parchment), 0 0 0 7px var(--gold);
+  }
+  .auth-wrap-faculty h1 { color: var(--forest-deep); }
+  .auth-wrap-faculty .eyebrow.gold { color: var(--gold); }
+</style>
