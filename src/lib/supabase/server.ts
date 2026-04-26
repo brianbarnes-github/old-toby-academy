@@ -10,6 +10,8 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 export type Role = 'student' | 'faculty' | 'headmaster';
 
+export type ExperienceLevel = 'none' | 'beginner' | 'intermediate' | 'advanced' | 'expert';
+
 export interface Profile {
   user_id: string;
   role: Role;
@@ -18,6 +20,12 @@ export interface Profile {
   created_at: string;
   rules_accepted_at: string | null;
   onboarding_completed_at: string | null;
+  // Phase 6: experience profile
+  music_level: ExperienceLevel | null;
+  ingame_music_level: ExperienceLevel | null;
+  technical_level: ExperienceLevel | null;
+  hopes: string | null;
+  // Pre-Phase-6 columns, kept for backward compatibility (no longer collected)
   instrument: string | null;
   why_joining: string | null;
   experience: string | null;

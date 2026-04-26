@@ -80,21 +80,37 @@ const characterName = profile.character_name ?? 'scribe';
         <section class="welcome-panel">
           <div class="eyebrow">Step Two · Your Profile</div>
           <h1>Tell the faculty about yourself.</h1>
-          <p class="kicker">Optional, but it helps us place you with the right cohort and band. You can fill any of these later from your account.</p>
+          <p class="kicker">All four answers are required so we can place you in the right cohort. You can refine any of them later from your account.</p>
 
           <form method="POST" action="/api/complete-profile" class="auth-form welcome-profile-form">
-            <label>Your favoured instrument
-              <input type="text" name="instrument" placeholder="e.g. Lute of Ages" value={profile.instrument ?? ''} />
+            {[
+              { name: 'music_level',        label: 'Music experience (general)' },
+              { name: 'ingame_music_level', label: 'In-game music experience' },
+              { name: 'technical_level',    label: 'Technical & computer experience' },
+            ].map(({ name, label }) => (
+              <fieldset class="exp-fieldset">
+                <legend>{label}</legend>
+                <div class="exp-options">
+                  {(['none','beginner','intermediate','advanced','expert'] as const).map((level) => {
+                    const id = `${name}-${level}`;
+                    const checked = (profile as any)[name] === level;
+                    return (
+                      <label class="exp-option" for={id}>
+                        <input type="radio" id={id} name={name} value={level} required checked={checked} />
+                        <span>{level}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            ))}
+
+            <label>What you hope to get from this effort
+              <textarea name="hopes" rows="4" required placeholder="A few sentences on what you want out of the academy.">{profile.hopes ?? ''}</textarea>
             </label>
-            <label>Why are you joining?
-              <textarea name="why_joining" rows="3" placeholder="A few words on what brought you to the Hall.">{profile.why_joining ?? ''}</textarea>
-            </label>
-            <label>Your experience so far
-              <textarea name="experience" rows="3" placeholder="Have you transcribed before? Played in a band? Anything we should know.">{profile.experience ?? ''}</textarea>
-            </label>
+
             <div class="welcome-actions">
               <button class="btn" type="submit">Save &amp; continue</button>
-              <a class="btn btn-ghost" href="/welcome?step=3">Skip for now</a>
             </div>
           </form>
         </section>
@@ -228,6 +244,59 @@ const characterName = profile.character_name ?? 'scribe';
     outline: none; border-color: var(--gold); background: rgba(255, 250, 235, 0.95);
   }
   .welcome-profile-form textarea { resize: vertical; }
+
+  /* Radio "pill" groups for experience-level questions */
+  .welcome-profile-form .exp-fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+  .welcome-profile-form .exp-fieldset legend {
+    font-family: var(--display);
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    padding: 0;
+  }
+  .welcome-profile-form .exp-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .welcome-profile-form .exp-option {
+    flex: 1 1 auto;
+    min-width: 96px;
+    padding: 10px 12px;
+    border: 1px solid var(--rule-soft);
+    background: rgba(255, 250, 235, 0.6);
+    font-family: var(--display);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .welcome-profile-form .exp-option:hover { border-color: var(--gold); color: var(--ink); }
+  .welcome-profile-form .exp-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .welcome-profile-form .exp-option:has(input[type="radio"]:checked) {
+    background: var(--gold);
+    color: var(--ink);
+    border-color: var(--gold);
+    font-weight: 700;
+  }
+  .welcome-profile-form .exp-option:has(input[type="radio"]:focus-visible) {
+    outline: 2px solid var(--oxblood);
+    outline-offset: 2px;
+  }
 
   .welcome-actions {
     display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px;
