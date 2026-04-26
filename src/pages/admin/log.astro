@@ -32,7 +32,7 @@ if (userIds.length > 0) {
   }
 }
 
-const eventTypes = ['token_redeemed', 'rules_accepted', 'profile_updated', 'onboarding_completed'];
+const eventTypes = ['token_redeemed', 'token_revoked', 'rules_accepted', 'profile_updated', 'onboarding_completed'];
 
 function formatDetails(d: any): string {
   if (!d || Object.keys(d).length === 0) return '—';
