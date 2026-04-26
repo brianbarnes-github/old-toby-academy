@@ -13,8 +13,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const expiresDays = Number(formData.get('expires_days') ?? 30);
   const notes = String(formData.get('notes') ?? '').trim() || null;
 
-  if (role !== 'student' && role !== 'faculty') {
-    return redirect('/admin/tokens?error=' + encodeURIComponent('Role must be student or faculty.'));
+  if (!role) {
+    return redirect('/admin/tokens?error=' + encodeURIComponent('Role is required.'));
   }
 
   const supabase = createSupabaseServerClient(cookies, request.headers);
