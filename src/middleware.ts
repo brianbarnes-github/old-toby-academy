@@ -11,16 +11,25 @@ const PUBLIC_ROUTES = new Set<string>([
   '/404',
 ]);
 
+// API endpoints that must be reachable without a session (the
+// authentication endpoints themselves). Other /api/* routes stay
+// gated and either require a session or do their own auth check.
+const PUBLIC_API_ROUTES = new Set<string>([
+  '/api/login',
+  '/api/logout',
+  '/api/redeem-token',
+]);
+
 // Routes only headmaster can reach.
 const HEADMASTER_PREFIXES = ['/admin'];
 
 function isPublic(pathname: string): boolean {
   if (PUBLIC_ROUTES.has(pathname)) return true;
+  if (PUBLIC_API_ROUTES.has(pathname)) return true;
   // Static-asset and Astro internals
   if (pathname.startsWith('/_')) return true;
   if (pathname.startsWith('/assets/')) return true;
   if (pathname === '/crest.svg' || pathname === '/favicon.ico') return true;
-  // API routes are gated individually
   return false;
 }
 

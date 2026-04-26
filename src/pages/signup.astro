@@ -2,6 +2,10 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 export const prerender = false;
+
+const error = Astro.url.searchParams.get('error');
+const tokenFromQuery = Astro.url.searchParams.get('token') ?? '';
+const character = Astro.url.searchParams.get('character') ?? '';
 ---
 
 <BaseLayout
@@ -12,8 +16,19 @@ export const prerender = false;
   <main class="page">
     <div class="auth-wrap">
       <div class="eyebrow">Token Redemption</div>
-      <h1>Soon, scribe.</h1>
-      <p class="kicker">The headmaster's token-redemption table is being prepared. If you've been given an invite token, hold it for the moment — the redemption flow will arrive in the next iteration of the Hall.</p>
+      <h1>Enter the Hall.</h1>
+      <p class="kicker">If the headmaster has given you an invite token, redeem it below to create your account. The academy doesn't ask for an email — your character name is your name in the Hall.</p>
+
+      {error && <div class="auth-err">{error}</div>}
+
+      <form class="auth-form" method="POST" action="/api/redeem-token">
+        <label>Invite token<input type="text" name="token" required value={tokenFromQuery} placeholder="given to you by the headmaster" autocomplete="off" /></label>
+        <label>Character name<input type="text" name="character" required value={character} placeholder="e.g. Vydor" autocomplete="username" /></label>
+        <label>Password<input type="password" name="password" required minlength="6" autocomplete="new-password" /></label>
+        <label>Server (optional)<input type="text" name="server" placeholder="e.g. Landroval" autocomplete="off" /></label>
+        <button class="btn" type="submit">Redeem &amp; Sign In</button>
+      </form>
+
       <p class="auth-aside">Already a member? <a href="/login">Sign in</a>.</p>
     </div>
   </main>

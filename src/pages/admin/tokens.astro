@@ -1,0 +1,167 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+const error = Astro.url.searchParams.get('error');
+const newToken = Astro.url.searchParams.get('new');
+const newRole = Astro.url.searchParams.get('role');
+
+const { data: tokens, error: listErr } = await supabase
+  .from('invite_tokens_admin')
+  .select('*');
+
+const origin = Astro.url.origin;
+---
+
+<BaseLayout
+  title="Invite Tokens · Admin · Old Toby Academy"
+  description="Generate and manage invite tokens."
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/admin">Admin</a><span>›</span>
+      <em>Invite Tokens</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Headmaster's Study</div>
+      <h1>Invite Tokens</h1>
+      <p class="kicker">Mint a token, copy the link, hand it out (Discord, in-game, parchment scroll). The recipient pastes the token at <code>/signup</code> to create an account.</p>
+    </div>
+
+    {error && <div class="auth-err">{error}</div>}
+
+    {newToken && (
+      <div class="token-banner">
+        <div class="eyebrow">New {newRole} token minted</div>
+        <p class="token-banner-sub">Copy this — you'll only see it once in this banner. (It's also in the table below.)</p>
+        <div class="token-display">
+          <code class="token-code">{newToken}</code>
+        </div>
+        <div class="token-display">
+          <span class="token-label">Direct link:</span>
+          <code class="token-code">{origin}/signup?token={newToken}</code>
+        </div>
+      </div>
+    )}
+
+    <div class="admin-section">
+      <h2>Generate a new token</h2>
+      <form class="token-form" method="POST" action="/api/generate-token">
+        <label>Role
+          <select name="role" required>
+            <option value="student" selected>Student</option>
+            <option value="faculty">Faculty</option>
+          </select>
+        </label>
+        <label>Expires after (days)
+          <input type="number" name="expires_days" value="30" min="0" max="365" />
+        </label>
+        <button class="btn" type="submit">Mint token</button>
+      </form>
+      <p class="muted italic" style="margin-top: 8px;">Set expiry days to <code>0</code> for no expiry.</p>
+    </div>
+
+    <div class="admin-section">
+      <h2>All tokens</h2>
+      {listErr ? (
+        <p class="auth-err">Could not load tokens: {listErr.message}</p>
+      ) : tokens && tokens.length > 0 ? (
+        <table class="nice-table token-table">
+          <thead>
+            <tr>
+              <th style="width:30%;">Token</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Expires</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tokens.map((t: any) => (
+              <tr>
+                <td class="mono token-cell"><code>{t.token}</code></td>
+                <td>{t.role}</td>
+                <td><span class={`token-status token-status-${t.status}`}>{t.status}</span></td>
+                <td>{t.expires_at ? new Date(t.expires_at).toLocaleDateString() : '—'}</td>
+                <td>{new Date(t.created_at).toLocaleDateString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p class="muted italic">No tokens yet. Mint your first one above.</p>
+      )}
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .admin-section { margin-top: 48px; }
+  .admin-section h2 { font-style: italic; font-weight: 500; margin-bottom: 16px; }
+
+  .token-banner {
+    margin-top: 24px; padding: 24px 28px;
+    background: linear-gradient(180deg, rgba(168, 132, 58, 0.18), rgba(168, 132, 58, 0.06));
+    border: 1px solid var(--gold);
+    box-shadow: 0 0 0 6px var(--parchment), 0 0 0 7px var(--gold);
+  }
+  .token-banner-sub { font-style: italic; color: var(--ink-soft); margin-bottom: 14px; }
+  .token-display {
+    display: flex; align-items: center; gap: 12px; margin: 8px 0;
+    flex-wrap: wrap;
+  }
+  .token-label { font-family: var(--display); font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-soft); }
+  .token-code {
+    font-family: var(--mono); font-size: 0.95rem;
+    background: var(--ink); color: #ddd0a8;
+    padding: 6px 12px; border-radius: 2px;
+    word-break: break-all;
+  }
+
+  .token-form {
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;
+    padding: 24px;
+    background: rgba(255, 250, 235, 0.4);
+    border: 1px solid var(--rule-soft);
+  }
+  .token-form label {
+    display: flex; flex-direction: column; gap: 4px;
+    font-family: var(--display); font-size: 0.85rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .token-form input,
+  .token-form select {
+    font-family: var(--body); font-size: 1rem;
+    padding: 8px 12px;
+    background: rgba(255, 250, 235, 0.7);
+    border: 1px solid var(--rule-soft); border-radius: 2px;
+    color: var(--ink); letter-spacing: 0; text-transform: none;
+    min-width: 180px;
+  }
+  .token-form input:focus, .token-form select:focus {
+    outline: none; border-color: var(--gold);
+  }
+
+  .token-table { font-size: 0.92rem; }
+  .token-table .token-cell { word-break: break-all; }
+  .token-table .token-cell code {
+    background: rgba(31, 58, 46, 0.06);
+    padding: 2px 6px; border-radius: 2px;
+  }
+  .token-status {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border: 1px solid;
+  }
+  .token-status-active { color: var(--forest-deep); border-color: var(--forest-deep); }
+  .token-status-used { color: var(--ink-soft); border-color: var(--rule-soft); }
+  .token-status-expired { color: var(--oxblood); border-color: var(--oxblood); }
+</style>

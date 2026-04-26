@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 export const prerender = false;
 
 const error = Astro.url.searchParams.get('error');
-const email = Astro.url.searchParams.get('email') ?? '';
+const name = Astro.url.searchParams.get('name') ?? '';
 const next = Astro.url.searchParams.get('next') ?? '/courses';
 ---
 
@@ -24,7 +24,7 @@ const next = Astro.url.searchParams.get('next') ?? '/courses';
       <form class="auth-form" method="POST" action="/api/login">
         <input type="hidden" name="next" value={next} />
         <input type="hidden" name="variant" value="faculty" />
-        <label>Email<input type="email" name="email" required value={email} autocomplete="email" /></label>
+        <label>Character name<input type="text" name="name" required value={name} autocomplete="username" placeholder="e.g. Vydor" /></label>
         <label>Password<input type="password" name="password" required autocomplete="current-password" /></label>
         <button class="btn" type="submit">Sign in</button>
       </form>
