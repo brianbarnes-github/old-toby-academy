@@ -386,3 +386,151 @@ tr:hover td { background: rgba(168, 132, 58, 0.06); }
   overflow: hidden;
   pointer-events: none;
 }
+
+/* ===== Library diagrams ===== */
+.diagram-figure {
+  margin: 36px auto;
+  text-align: center;
+  max-width: 100%;
+}
+.diagram-figure svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+.diagram-figure figcaption {
+  font-style: italic;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  margin-top: 12px;
+}
+
+/* Piano keyboard */
+.keyboard-svg .white-key { fill: #fdf8e8; stroke: var(--ink); stroke-width: 1.2; }
+.keyboard-svg .white-key.is-active { fill: var(--gold-light); }
+.keyboard-svg .white-key.is-root { fill: var(--gold); }
+.keyboard-svg .black-key { fill: #2a2014; stroke: var(--ink); stroke-width: 1.2; }
+.keyboard-svg .black-key.is-active { fill: var(--gold); }
+.keyboard-svg .key-label {
+  font-family: "EB Garamond", Garamond, serif;
+  font-size: 13px;
+  text-anchor: middle;
+  fill: var(--ink-soft);
+  pointer-events: none;
+}
+.keyboard-svg .key-label.on-black { fill: #fdf8e8; font-size: 11px; }
+.keyboard-svg .scale-degree {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  text-anchor: middle;
+  fill: var(--oxblood);
+  pointer-events: none;
+}
+
+/* Music staff */
+.staff-svg .staff-line { stroke: var(--ink); stroke-width: 1.2; }
+.staff-svg .ledger-line { stroke: var(--ink); stroke-width: 1.2; }
+.staff-svg .barline { stroke: var(--ink); stroke-width: 1.5; }
+.staff-svg .note-head { fill: var(--ink); }
+.staff-svg .note-head.open { fill: #fdf8e8; stroke: var(--ink); stroke-width: 1.5; }
+.staff-svg .note-stem { stroke: var(--ink); stroke-width: 1.5; }
+.staff-svg .note-flag { fill: var(--ink); }
+.staff-svg .note-label {
+  font-family: "EB Garamond", Garamond, serif;
+  font-size: 14px;
+  fill: var(--ink-soft);
+  text-anchor: middle;
+}
+.staff-svg .clef-glyph {
+  font-family: "Bravura", "Cambria Math", "Apple Symbols", "Lucida Sans Unicode", "Segoe UI Symbol", "Symbola", "Cormorant Garamond", serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 28px;
+  fill: var(--ink);
+  text-anchor: middle;
+}
+.staff-svg .time-sig {
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 700;
+  font-size: 32px;
+  fill: var(--ink);
+  text-anchor: middle;
+}
+
+/* Step pattern blocks (W-W-H-W-W-W-H etc.) */
+.step-pattern {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 24px 0;
+  flex-wrap: wrap;
+}
+.step-cell {
+  padding: 8px 12px;
+  border: 1px solid var(--rule-soft);
+  background: rgba(255, 250, 235, 0.7);
+  font-family: var(--display);
+  font-size: 1.05rem;
+  min-width: 44px;
+  text-align: center;
+  color: var(--forest-deep);
+}
+.step-cell.note { font-weight: 600; }
+.step-cell.gap-w {
+  background: rgba(168, 132, 58, 0.12);
+  border-color: var(--gold);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  padding: 6px 10px;
+  min-width: auto;
+}
+.step-cell.gap-h {
+  background: rgba(107, 31, 26, 0.12);
+  border-color: var(--oxblood);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  color: var(--oxblood);
+  padding: 6px 10px;
+  min-width: auto;
+}
+
+/* Note-duration tree */
+.duration-tree {
+  display: grid;
+  grid-template-columns: 80px 1fr 60px;
+  gap: 8px 18px;
+  align-items: center;
+  margin: 24px auto;
+  max-width: 560px;
+}
+.duration-tree .dur-label {
+  font-family: var(--display);
+  font-style: italic;
+  color: var(--forest-deep);
+  font-size: 1.0rem;
+}
+.duration-tree .dur-bar {
+  height: 22px;
+  border: 1px solid var(--ink);
+  background: var(--gold-light);
+  display: flex;
+  align-items: stretch;
+}
+.duration-tree .dur-bar .seg {
+  flex: 1;
+  border-right: 1px solid var(--ink);
+}
+.duration-tree .dur-bar .seg:last-child { border-right: none; }
+.duration-tree .dur-beats {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  text-align: right;
+}
+

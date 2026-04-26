@@ -26,7 +26,8 @@ export type Permission =
   | 'users.reset_password'
   | 'roles.manage'
   | 'progress.read'
-  | 'courses.author';
+  | 'courses.author'
+  | 'library.contribute';
 
 export type ExperienceLevel = 'none' | 'beginner' | 'intermediate' | 'advanced' | 'expert';
 

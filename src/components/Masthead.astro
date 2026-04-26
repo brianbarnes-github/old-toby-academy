@@ -1,5 +1,5 @@
 ---
-type NavKey = 'home' | 'courses' | 'faculty' | 'alumni' | null;
+type NavKey = 'home' | 'courses' | 'library' | 'faculty' | 'alumni' | null;
 interface Props {
   activeNav?: NavKey;
 }
@@ -45,6 +45,7 @@ for (const slug of permissions) {
     <nav class="nav">
       <a href="/" class:list={[{ active: activeNav === 'home' }]}>Home</a>
       <a href="/courses" class:list={[{ active: activeNav === 'courses' }]}>Courses</a>
+      <a href="/library" class:list={[{ active: activeNav === 'library' }]}>Library</a>
       <a href="/faculty" class:list={[{ active: activeNav === 'faculty' }]}>Faculty</a>
       <a href="/alumni" class:list={[{ active: activeNav === 'alumni' }]}>Alumni Hall</a>
       {hasAdminAccess && <a href="/admin">Admin</a>}

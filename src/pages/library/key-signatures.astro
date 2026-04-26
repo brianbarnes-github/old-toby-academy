@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+---
+
+<BaseLayout
+  title="Key Signatures · Library · Old Toby Academy"
+  description="Major and minor keys, the circle of fifths, and the relationships that bind every key together."
+  activeNav="library"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/library">Library</a><span>›</span>
+      <em>Key Signatures &amp; the Circle of Fifths</em>
+    </div>
+
+    <article class="library-chapter">
+      <div class="page-head">
+        <div class="eyebrow">Chapter IV</div>
+        <h1>Key Signatures &amp; the Circle of Fifths</h1>
+        <p class="kicker">The tonal palette of major and minor scales, and the circular diagram that shows how every key relates to every other.</p>
+      </div>
+
+      <h2>Scales &amp; Key Signatures</h2>
+      <p>Major and minor scales are the foundational building blocks of Western music, defining the tonal palette and providing the basis for melodies, harmonies, and chord progressions. Understanding the characteristics and differences between the two is essential for navigating the rich tapestry of musical expression.</p>
+
+      <h3>Characteristics of Major Scales</h3>
+      <p>Major scales are characterized by their bright, uplifting sound, often associated with happiness, optimism, and stability. They follow a specific pattern of whole steps (W) and half steps (H): <strong>W–W–H–W–W–W–H</strong>. In C major, the scale is <span class="mono">C–D–E–F–G–A–B–C</span>.</p>
+
+      <h3>Characteristics of Minor Scales</h3>
+      <p>Minor scales have a more subdued, melancholic sound, evoking introspection, sadness, or mystery. There are three forms — natural, harmonic, and melodic. The natural minor follows the pattern <strong>W–H–W–W–H–W–W</strong>; A minor is <span class="mono">A–B–C–D–E–F–G–A</span>.</p>
+      <dl class="deflist">
+        <dt>Natural Minor</dt>
+        <dd>The most basic form. Same notes as the relative major, but starting and ending on a different pitch.</dd>
+        <dt>Harmonic Minor</dt>
+        <dd>Raises the seventh degree of the natural minor by a half step, creating a leading tone that resolves more strongly to the tonic.</dd>
+        <dt>Melodic Minor</dt>
+        <dd>Raises the sixth and seventh degrees when ascending; returns to natural minor when descending. Smooths the line and resolves the awkward augmented second of the harmonic minor.</dd>
+      </dl>
+
+      <h3>Differences and Relationships</h3>
+      <dl class="deflist">
+        <dt>Relative major and minor</dt>
+        <dd>Every major scale has a relative minor (and vice versa) — they share the same key signature but start on different pitches. C major and A minor have the same key signature: no sharps or flats.</dd>
+        <dt>Parallel major and minor</dt>
+        <dd>Parallel scales share the same tonic but differ in tonality. C major and C minor start on the same pitch but have different key signatures.</dd>
+      </dl>
+
+      <h3>Application in Music</h3>
+      <p>Major and minor scales are foundational across genres. Major scales often dominate cheerful, triumphant, or celebratory pieces; minor scales are common in dramatic, emotive, or melancholic ones.</p>
+
+      <h2>The Circle of Fifths</h2>
+      <p>The circle of fifths is a fundamental concept in music theory — a visual representation of the relationships between musical keys. It's a powerful tool for understanding key signatures, chord progressions, and overall musical structure.</p>
+
+      <figure>
+        <img src="/assets/circleoffifths.jpg" alt="The Circle of Fifths diagram showing major and minor keys arranged around a circle." />
+        <figcaption>The Circle of Fifths — major keys on the outside, relative minors on the inside.</figcaption>
+      </figure>
+
+      <h3>Understanding the Circle</h3>
+      <p>The circle is a circular diagram that arranges the twelve pitches of the chromatic scale in a sequence of ascending perfect fifths (or descending perfect fourths). It starts with C major at the top, which has no sharps or flats, and moves clockwise, adding one sharp at each step.</p>
+
+      <h3>Key Features</h3>
+      <dl class="deflist">
+        <dt>Key signatures</dt>
+        <dd>Each key is represented by its major or minor signature, depending on its position on the circle.</dd>
+
+        <dt>Relationships between keys</dt>
+        <dd>Moving clockwise, each key is a perfect fifth higher than the previous. G major is a perfect fifth higher than C major.</dd>
+
+        <dt>Relative major and minor</dt>
+        <dd>Keys that share the same signature sit opposite each other (major outside, minor inside). C major and A minor have no sharps or flats.</dd>
+
+        <dt>Order of sharps and flats</dt>
+        <dd>The order of sharps starts with F♯ and adds one with each clockwise step. The order of flats starts with B♭ and adds one with each counter-clockwise step.</dd>
+      </dl>
+
+      <h3>Significance in Music Theory</h3>
+      <ul>
+        <li><strong>Key relationships and modulation</strong> — modulating to an adjacent key on the circle creates smooth transitions due to harmonic proximity.</li>
+        <li><strong>Chord progressions</strong> — the circle's pattern underpins progressions like ii–V–I, common in jazz and classical music.</li>
+        <li><strong>Composition and harmony</strong> — composers use it to plan harmonic structure and develop coherent progressions.</li>
+      </ul>
+
+      <h3>Practical Application</h3>
+      <ul>
+        <li><strong>Learning key signatures</strong> — a memory aid for the relationships between keys.</li>
+        <li><strong>Songwriting</strong> — building chord progressions, developing melodies, and modulating between keys.</li>
+        <li><strong>Performance and improvisation</strong> — informed choices about chord changes and harmonic substitutions.</li>
+      </ul>
+
+      <h2>Key Signatures &amp; the World of Keys</h2>
+      <p>Key signatures are symbols placed at the beginning of a staff to indicate the key of a piece. They consist of sharps (♯) or flats (♭) on the staff lines or spaces, indicating which notes are consistently raised or lowered throughout the piece.</p>
+
+      <h3>Significance of Key Signatures</h3>
+      <dl class="deflist">
+        <dt>Modulation and tonality</dt>
+        <dd>Key signatures play a crucial role in modulating between keys. They establish tonality, define the emotional character of a piece, and provide a framework for harmonic progression.</dd>
+
+        <dt>Chord progressions and harmony</dt>
+        <dd>Chords within a key are built using the notes of that key's scale, creating a cohesive sound. Understanding signatures lets musicians construct progressions that follow tonal harmony and create tension and resolution effectively.</dd>
+      </dl>
+
+      <h3>Practical Applications</h3>
+      <ul>
+        <li><strong>Performance</strong> — recognizing which notes are sharped or flatted throughout a piece.</li>
+        <li><strong>Composition</strong> — establishing tonal centers and modulating for contrast and development.</li>
+        <li><strong>Analysis</strong> — examining harmonic relationships, chord progressions, and modulations.</li>
+      </ul>
+
+      <nav class="lesson-nav" style="margin-top: 64px;">
+        <a href="/library/rhythm-and-meter" class="prev">
+          <span class="nav-label">← Previous · III</span>
+          <span class="nav-title">Rhythm &amp; Meter</span>
+        </a>
+        <a href="/library/intervals" class="next">
+          <span class="nav-label">Next · V →</span>
+          <span class="nav-title">Intervals</span>
+        </a>
+      </nav>
+    </article>
+  </main>
+</BaseLayout>

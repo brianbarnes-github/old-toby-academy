@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CsrfField from '../../../components/CsrfField.astro';
+
+export const prerender = false;
+
+if (!Astro.locals.permissions.has('library.contribute')) {
+  return new Response("Forbidden — library.contribute required.", { status: 403 });
+}
+
+const error = Astro.url.searchParams.get('error');
+---
+
+<BaseLayout
+  title="Add to the Library · Old Toby Academy"
+  description="Upload a reference document to The Library."
+  activeNav="library"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/library">Library</a><span>›</span>
+      <a href="/library/contributed">Contributed</a><span>›</span>
+      <em>Add</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Contributor</div>
+      <h1>Add to the Library</h1>
+      <p class="kicker">Upload a reference file. PDFs, MIDI, ABC, images — anything up to 10 MB. Members will be able to download it from the catalog.</p>
+    </div>
+
+    {error && <div class="auth-err">{error}</div>}
+
+    <form class="auth-form course-form" method="POST" action="/api/library/save" enctype="multipart/form-data">
+      <CsrfField />
+      <label>Slug (URL-friendly id; lowercase, hyphens — e.g. <code>circle-of-fifths</code>)
+        <input type="text" name="slug" required pattern="[a-z0-9][a-z0-9-]*" maxlength="80" />
+      </label>
+      <label>Title
+        <input type="text" name="title" required maxlength="120" placeholder="What members will see" />
+      </label>
+      <label>Category (optional — used for grouping in the catalog)
+        <input type="text" name="category" maxlength="80" placeholder="e.g. Music Theory, ABC Examples, Drum Charts" />
+      </label>
+      <label>Description (optional)
+        <textarea name="description" rows="3" placeholder="A sentence or two on what this is and when it's useful."></textarea>
+      </label>
+      <label>File (≤ 10 MB)
+        <input type="file" name="file" required />
+      </label>
+      <button class="btn" type="submit">Upload</button>
+    </form>
+
+    <p class="muted italic" style="margin-top: 24px;">After upload the entry starts as a <strong>draft</strong>. Open it from the Library page to publish.</p>
+  </main>
+</BaseLayout>

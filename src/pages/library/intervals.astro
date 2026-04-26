@@ -1,0 +1,195 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+---
+
+<BaseLayout
+  title="Intervals · Library · Old Toby Academy"
+  description="The distance between pitches, interval qualities, and how scales are built and labelled by degree."
+  activeNav="library"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/library">Library</a><span>›</span>
+      <em>Intervals &amp; Scale Construction</em>
+    </div>
+
+    <article class="library-chapter">
+      <div class="page-head">
+        <div class="eyebrow">Chapter V</div>
+        <h1>Intervals &amp; Scale Construction</h1>
+        <p class="kicker">The distance between pitches — perfect, major, minor, augmented, diminished — and how those intervals build the scales and degrees we name.</p>
+      </div>
+
+      <h2>What Are Intervals?</h2>
+      <p>Intervals are the distance between two pitches, measured in scale degrees or semitones. Each interval has a specific quality determined by its size (the number of letter names involved) and its quality (perfect, major, minor, augmented, or diminished).</p>
+
+      <h2>Interval Qualities</h2>
+
+      <h3>Perfect Intervals</h3>
+      <p>Perfect intervals are the most stable and consonant.</p>
+      <ul>
+        <li>Perfect unison (P1), perfect fourth (P4), perfect fifth (P5), perfect octave (P8).</li>
+        <li>They retain their "perfect" label only at those numbers; raising one a half step makes it augmented, lowering it makes it diminished.</li>
+      </ul>
+
+      <h3>Major and Minor Intervals</h3>
+      <p>Major and minor intervals are the most common in music; they define major and minor scales. Major intervals are one semitone larger than minor intervals of the same number.</p>
+      <ul>
+        <li>Major: <strong>M2, M3, M6, M7</strong>.</li>
+        <li>Minor: <strong>m2, m3, m6, m7</strong>.</li>
+      </ul>
+
+      <figure class="diagram-figure">
+        <svg viewBox="0 0 280 110" class="keyboard-svg" role="img" aria-label="Major third interval from C to E on a piano keyboard.">
+          <rect class="white-key is-root"   x="0"   y="0" width="40" height="100"/>
+          <rect class="white-key"           x="40"  y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="80"  y="0" width="40" height="100"/>
+          <rect class="white-key"           x="120" y="0" width="40" height="100"/>
+          <rect class="white-key"           x="160" y="0" width="40" height="100"/>
+          <rect class="white-key"           x="200" y="0" width="40" height="100"/>
+          <rect class="white-key"           x="240" y="0" width="40" height="100"/>
+
+          <rect class="black-key" x="28"  y="0" width="24" height="58"/>
+          <rect class="black-key" x="68"  y="0" width="24" height="58"/>
+          <rect class="black-key" x="148" y="0" width="24" height="58"/>
+          <rect class="black-key" x="188" y="0" width="24" height="58"/>
+          <rect class="black-key" x="228" y="0" width="24" height="58"/>
+
+          <text class="key-label" x="20"  y="92">C</text>
+          <text class="key-label" x="60"  y="92">D</text>
+          <text class="key-label" x="100" y="92">E</text>
+          <text class="key-label" x="140" y="92">F</text>
+          <text class="key-label" x="180" y="92">G</text>
+          <text class="key-label" x="220" y="92">A</text>
+          <text class="key-label" x="260" y="92">B</text>
+        </svg>
+        <figcaption>Major third (M3) — four semitones from C to E.</figcaption>
+      </figure>
+
+      <figure class="diagram-figure">
+        <svg viewBox="0 0 280 110" class="keyboard-svg" role="img" aria-label="Minor third interval from C to E flat on a piano keyboard.">
+          <rect class="white-key is-root" x="0"   y="0" width="40" height="100"/>
+          <rect class="white-key"         x="40"  y="0" width="40" height="100"/>
+          <rect class="white-key"         x="80"  y="0" width="40" height="100"/>
+          <rect class="white-key"         x="120" y="0" width="40" height="100"/>
+          <rect class="white-key"         x="160" y="0" width="40" height="100"/>
+          <rect class="white-key"         x="200" y="0" width="40" height="100"/>
+          <rect class="white-key"         x="240" y="0" width="40" height="100"/>
+
+          <rect class="black-key"           x="28"  y="0" width="24" height="58"/>
+          <rect class="black-key is-active" x="68"  y="0" width="24" height="58"/>
+          <rect class="black-key"           x="148" y="0" width="24" height="58"/>
+          <rect class="black-key"           x="188" y="0" width="24" height="58"/>
+          <rect class="black-key"           x="228" y="0" width="24" height="58"/>
+
+          <text class="key-label" x="20"  y="92">C</text>
+          <text class="key-label" x="60"  y="92">D</text>
+          <text class="key-label" x="100" y="92">E</text>
+          <text class="key-label" x="140" y="92">F</text>
+          <text class="key-label" x="180" y="92">G</text>
+          <text class="key-label" x="220" y="92">A</text>
+          <text class="key-label" x="260" y="92">B</text>
+          <text class="key-label on-black" x="80" y="32">E♭</text>
+        </svg>
+        <figcaption>Minor third (m3) — three semitones from C to E♭. One semitone smaller than the major third.</figcaption>
+      </figure>
+
+      <figure class="diagram-figure">
+        <svg viewBox="0 0 280 110" class="keyboard-svg" role="img" aria-label="Perfect fifth interval from C to G on a piano keyboard.">
+          <rect class="white-key is-root"   x="0"   y="0" width="40" height="100"/>
+          <rect class="white-key"           x="40"  y="0" width="40" height="100"/>
+          <rect class="white-key"           x="80"  y="0" width="40" height="100"/>
+          <rect class="white-key"           x="120" y="0" width="40" height="100"/>
+          <rect class="white-key is-active" x="160" y="0" width="40" height="100"/>
+          <rect class="white-key"           x="200" y="0" width="40" height="100"/>
+          <rect class="white-key"           x="240" y="0" width="40" height="100"/>
+
+          <rect class="black-key" x="28"  y="0" width="24" height="58"/>
+          <rect class="black-key" x="68"  y="0" width="24" height="58"/>
+          <rect class="black-key" x="148" y="0" width="24" height="58"/>
+          <rect class="black-key" x="188" y="0" width="24" height="58"/>
+          <rect class="black-key" x="228" y="0" width="24" height="58"/>
+
+          <text class="key-label" x="20"  y="92">C</text>
+          <text class="key-label" x="60"  y="92">D</text>
+          <text class="key-label" x="100" y="92">E</text>
+          <text class="key-label" x="140" y="92">F</text>
+          <text class="key-label" x="180" y="92">G</text>
+          <text class="key-label" x="220" y="92">A</text>
+          <text class="key-label" x="260" y="92">B</text>
+        </svg>
+        <figcaption>Perfect fifth (P5) — seven semitones from C to G. The most consonant interval after the unison and octave.</figcaption>
+      </figure>
+
+      <h3>Augmented and Diminished Intervals</h3>
+      <ul>
+        <li>An <strong>augmented</strong> interval is one semitone larger than a perfect or major interval. Examples: A1, A4, A5, A8.</li>
+        <li>A <strong>diminished</strong> interval is one semitone smaller than a perfect or minor interval. Examples: d2, d3, d4, d5, d6, d7.</li>
+      </ul>
+
+      <h3>Practical Application</h3>
+      <ul>
+        <li><strong>Harmonic analysis</strong> — interval qualities reveal chord structures and the logic of harmonic progressions.</li>
+        <li><strong>Melodic analysis</strong> — identifying intervals in a melody clarifies its shape, direction, and emotional content.</li>
+        <li><strong>Performance</strong> — accurate interval reading is essential for melodies, harmonies, and improvisation.</li>
+        <li><strong>Composition</strong> — composers use intervals to shape melodic and harmonic textures and to convey mood.</li>
+      </ul>
+
+      <h2>Constructing Scales</h2>
+      <p>Scales are sequences of pitches arranged in ascending or descending order according to a specific pattern of intervals. The most common types in Western music are major and minor scales, but there are also modes, pentatonic scales, and others.</p>
+
+      <h3>Major Scale</h3>
+      <p>The major scale follows the pattern <strong>W–W–H–W–W–W–H</strong>. The C major scale is <span class="mono">C–D–E–F–G–A–B–C</span>: whole steps between C–D, D–E, F–G, G–A, A–B; half steps between E–F and B–C.</p>
+
+      <h3>Natural Minor Scale</h3>
+      <p>The natural minor scale follows the pattern <strong>W–H–W–W–H–W–W</strong>. The A natural minor scale is <span class="mono">A–B–C–D–E–F–G–A</span>: whole steps between A–B, C–D, D–E, F–G; half steps between B–C and E–F.</p>
+
+      <h2>Identifying Scale Degrees</h2>
+      <p>Scale degrees refer to the position of each note within a scale, indicated by numbers (1, 2, 3 …). Understanding scale degrees is crucial for analyzing melodies, chords, and harmonic progressions.</p>
+
+      <dl class="deflist">
+        <dt>Tonic <em>(1st degree)</em></dt>
+        <dd>The first note of the scale and tonal center. The most stable note; gives a sense of resolution.</dd>
+
+        <dt>Supertonic <em>(2nd degree)</em></dt>
+        <dd>One whole step above the tonic. Often leads to the tonic and has a slightly unstable quality.</dd>
+
+        <dt>Mediant <em>(3rd degree)</em></dt>
+        <dd>A third above the tonic. Adds color and character to the melody.</dd>
+
+        <dt>Subdominant <em>(4th degree)</em></dt>
+        <dd>A fourth above the tonic. Creates tension and often leads to the dominant.</dd>
+
+        <dt>Dominant <em>(5th degree)</em></dt>
+        <dd>A fifth above the tonic. Strong pull toward the tonic; often used to establish the key.</dd>
+
+        <dt>Submediant <em>(6th degree)</em></dt>
+        <dd>A sixth above the tonic. Adds richness and depth.</dd>
+
+        <dt>Leading Tone <em>(7th degree)</em></dt>
+        <dd>A half step below the tonic. Creates tension and resolves strongly to the tonic.</dd>
+      </dl>
+
+      <h3>Practical Application</h3>
+      <ul>
+        <li><strong>Melodic analysis</strong> — identifying degrees clarifies melodic function within a piece.</li>
+        <li><strong>Chord progressions</strong> — degrees are used to build chords and understand their relationships within a key.</li>
+        <li><strong>Improvisation</strong> — knowing the degrees lets improvisers navigate the scale and complement the underlying harmony.</li>
+      </ul>
+
+      <nav class="lesson-nav" style="margin-top: 64px;">
+        <a href="/library/key-signatures" class="prev">
+          <span class="nav-label">← Previous · IV</span>
+          <span class="nav-title">Key Signatures</span>
+        </a>
+        <a href="/library/chords" class="next">
+          <span class="nav-label">Next · VI →</span>
+          <span class="nav-title">Triads &amp; Chords</span>
+        </a>
+      </nav>
+    </article>
+  </main>
+</BaseLayout>
