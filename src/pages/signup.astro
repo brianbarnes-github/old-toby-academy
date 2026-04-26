@@ -25,7 +25,7 @@ const character = Astro.url.searchParams.get('character') ?? '';
         <label>Invite token<input type="text" name="token" required value={tokenFromQuery} placeholder="given to you by the headmaster" autocomplete="off" /></label>
         <label>Character name<input type="text" name="character" required value={character} placeholder="e.g. Vydor" autocomplete="username" /></label>
         <label>Password<input type="password" name="password" required minlength="6" autocomplete="new-password" /></label>
-        <label>Server (optional)<input type="text" name="server" placeholder="e.g. Landroval" autocomplete="off" /></label>
+        <label>Server (optional)<input type="text" name="server" placeholder="e.g. Sting" autocomplete="off" /></label>
         <button class="btn" type="submit">Redeem &amp; Sign In</button>
       </form>
 
