@@ -14,7 +14,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
   if (!user) return redirect('/login');
 
   const entryId = String(formData.get('entry_id') ?? '').trim();
-  if (!entryId) return redirect('/library?error=Missing+entry');
+  if (!entryId) return redirect('/library/contributed?error=Missing+entry');
 
   const supabase = createSupabaseServerClient(cookies, request.headers);
 
@@ -27,7 +27,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
   const { error } = await supabase.from('library_entries').delete().eq('id', entryId);
 
   if (error) {
-    return redirect(`/library?error=${encodeURIComponent(error.message)}`);
+    return redirect(`/library/contributed?error=${encodeURIComponent(error.message)}`);
   }
 
   if (entry?.file_path) {
@@ -40,7 +40,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
     details: { entry_id: entryId, slug: entry?.slug, title: entry?.title },
   });
 
-  return redirect('/library?ok=deleted');
+  return redirect('/library/contributed?ok=deleted');
 };
 
-export const GET: APIRoute = async ({ redirect }) => redirect('/library');
+export const GET: APIRoute = async ({ redirect }) => redirect('/library/contributed');

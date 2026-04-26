@@ -3,51 +3,51 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export const prerender = false;
 
-const supabase = Astro.locals.supabase;
-const userId = Astro.locals.user?.id;
 const canContribute = Astro.locals.permissions.has('library.contribute');
 
-const { data: entries, error } = await supabase
-  .from('library_entries')
-  .select('id, slug, title, description, category, file_path, file_name, file_size, content_type, published_at, created_by, created_at')
-  .order('category', { ascending: true })
-  .order('title',    { ascending: true });
-
-// RLS already filters drafts; this is just a safe fallback for ordering display.
-const all = entries ?? [];
-const myDrafts = all.filter((e: any) => e.published_at === null && e.created_by === userId);
-const published = all.filter((e: any) => e.published_at !== null);
-const otherDrafts = all.filter((e: any) => e.published_at === null && e.created_by !== userId);
-
-// Group published entries by category
-const byCategory = new Map<string, any[]>();
-for (const e of published) {
-  const key = e.category?.trim() || 'Uncategorized';
-  if (!byCategory.has(key)) byCategory.set(key, []);
-  byCategory.get(key)!.push(e);
-}
-const sortedCategories = [...byCategory.keys()].sort((a, b) =>
-  a === 'Uncategorized' ? 1 : b === 'Uncategorized' ? -1 : a.localeCompare(b)
-);
-
-function publicUrl(path: string): string {
-  return supabase.storage.from('library-files').getPublicUrl(path).data.publicUrl;
-}
-
-function fmtSize(bytes: number | null): string {
-  if (!bytes) return '';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-const ok = Astro.url.searchParams.get('ok');
-const error_ = Astro.url.searchParams.get('error');
+const chapters = [
+  {
+    numeral: 'I',
+    href: '/library/foundations',
+    title: 'Foundations',
+    summary: 'Western music, the staff and clefs, note values, and rests.',
+  },
+  {
+    numeral: 'II',
+    href: '/library/scales-and-modes',
+    title: 'Scales & Modes',
+    summary: 'Major and minor scales, chromaticism, and the seven church modes.',
+  },
+  {
+    numeral: 'III',
+    href: '/library/rhythm-and-meter',
+    title: 'Rhythm & Meter',
+    summary: 'Time signatures, syncopation, and the feel of meter across genres.',
+  },
+  {
+    numeral: 'IV',
+    href: '/library/key-signatures',
+    title: 'Key Signatures & the Circle of Fifths',
+    summary: 'Major and minor keys, modulation, and the diagram that ties them together.',
+  },
+  {
+    numeral: 'V',
+    href: '/library/intervals',
+    title: 'Intervals & Scale Construction',
+    summary: 'Interval qualities, scale-building patterns, and named scale degrees.',
+  },
+  {
+    numeral: 'VI',
+    href: '/library/chords',
+    title: 'Triads & Chords',
+    summary: 'Triad qualities, chord families, harmonic function, and common progressions.',
+  },
+];
 ---
 
 <BaseLayout
   title="The Library · Old Toby Academy"
-  description="Reference materials and music-theory resources."
+  description="A reference of Western music theory — scales, modes, rhythm, keys, intervals, and chords."
   activeNav="library"
   footerVariant="short"
 >
@@ -55,84 +55,52 @@ const error_ = Astro.url.searchParams.get('error');
     <div class="page-head">
       <div class="eyebrow">Reference Shelf</div>
       <h1>The Library</h1>
-      <p class="kicker">Music theory, ABC and MIDI examples, drum charts, instrument guides — the canon of the academy. Browse, download, and study at your own pace.</p>
-      {canContribute && (
-        <p style="margin-top: 16px;">
-          <a class="btn" href="/library/new">+ Add to the Library</a>
-        </p>
-      )}
+      <p class="kicker">Music theory for the realm. The principles and practices that govern Western music — scales, rhythm, keys, intervals, and chords — laid out chapter by chapter for study at your own pace.</p>
     </div>
 
-    {ok === 'deleted' && <div class="auth-ok">Entry deleted.</div>}
-    {error_           && <div class="auth-err">{error_}</div>}
-    {error            && <div class="auth-err">Could not load Library: {error.message}</div>}
+    <section class="library-intro">
+      <p>Music theory is the study of the principles and practices that govern music. It encompasses harmony, melody, rhythm, form, notation, and structure — a framework for understanding how music works, why certain combinations of sounds are pleasing to the ear, and how musicians create and interpret what they play.</p>
+      <p>The chapters below cover the canon. Read them in order or pick whichever is most useful at hand.</p>
+    </section>
 
-    {canContribute && myDrafts.length > 0 && (
-      <section class="library-section">
-        <h2>Your drafts</h2>
-        <div class="library-grid">
-          {myDrafts.map((e: any) => (
-            <a class="library-card library-card-draft" href={`/library/${e.slug}/edit`}>
-              <div class="library-card-head">
-                <span class="library-card-title">{e.title}</span>
-                <span class="course-status-chip course-status-draft">draft</span>
-              </div>
-              <p class="library-card-meta">{e.file_name} · {fmtSize(e.file_size)}</p>
-              {e.description && <p class="library-card-desc">{e.description}</p>}
-            </a>
-          ))}
-        </div>
-      </section>
-    )}
+    <section class="library-section">
+      <h2>Contents</h2>
+      <div class="chapter-grid">
+        {chapters.map((c) => (
+          <a class="chapter-card" href={c.href}>
+            <div class="chapter-numeral">{c.numeral}</div>
+            <div class="chapter-body">
+              <span class="chapter-title">{c.title}</span>
+              <p class="chapter-summary">{c.summary}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
 
-    {sortedCategories.length === 0 ? (
-      <p class="muted italic" style="margin-top: 32px;">The Library is empty.{canContribute && <> <a href="/library/new">Add the first entry</a>.</>}</p>
-    ) : (
-      sortedCategories.map((cat) => (
-        <section class="library-section">
-          <h2>{cat}</h2>
-          <div class="library-grid">
-            {byCategory.get(cat)!.map((e: any) => (
-              <article class="library-card">
-                <div class="library-card-head">
-                  <span class="library-card-title">{e.title}</span>
-                </div>
-                <p class="library-card-meta">{e.file_name} · {fmtSize(e.file_size)}</p>
-                {e.description && <p class="library-card-desc">{e.description}</p>}
-                <div class="library-card-actions">
-                  <a class="btn btn-ghost" href={publicUrl(e.file_path)} download={e.file_name} target="_blank" rel="noopener noreferrer">Download</a>
-                  {(canContribute || e.created_by === userId) && (
-                    <a class="row-action" href={`/library/${e.slug}/edit`}>Edit</a>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      ))
-    )}
-
-    {otherDrafts.length > 0 && (
-      <section class="library-section">
-        <h2>Other drafts</h2>
-        <p class="muted italic">As headmaster, you can see drafts from other contributors.</p>
-        <div class="library-grid">
-          {otherDrafts.map((e: any) => (
-            <a class="library-card library-card-draft" href={`/library/${e.slug}/edit`}>
-              <div class="library-card-head">
-                <span class="library-card-title">{e.title}</span>
-                <span class="course-status-chip course-status-draft">draft</span>
-              </div>
-              <p class="library-card-meta">{e.file_name} · {fmtSize(e.file_size)}</p>
-            </a>
-          ))}
-        </div>
-      </section>
-    )}
+    <section class="library-section contributed-section">
+      <h2>Contributed Materials</h2>
+      <p class="contributed-intro">Beyond the canonical reference, the academy keeps a shelf for contributed materials — ABC and MIDI examples, drum charts, instrument guides, and other resources shared by faculty.</p>
+      <div class="contributed-actions">
+        <a class="btn btn-ghost" href="/library/contributed">Browse contributed materials →</a>
+        {canContribute && (
+          <a class="btn" href="/library/contributed/new">+ Add Content</a>
+        )}
+      </div>
+    </section>
   </main>
 </BaseLayout>
 
 <style is:global>
+  .library-intro {
+    max-width: 760px;
+    margin: 0 auto 16px;
+    color: var(--ink-soft);
+    font-size: 1.02rem;
+    line-height: 1.7;
+  }
+  .library-intro p { margin: 0 0 1em; }
+
   .library-section { margin-top: 48px; }
   .library-section h2 {
     font-style: italic; font-weight: 500;
@@ -140,42 +108,62 @@ const error_ = Astro.url.searchParams.get('error');
     border-bottom: 1px double var(--rule-soft);
     padding-bottom: 8px;
   }
-  .library-grid {
+
+  .chapter-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    gap: 20px;
   }
-  .library-card {
-    display: block;
+  .chapter-card {
+    display: flex;
+    align-items: stretch;
+    gap: 20px;
     padding: 22px 26px;
     background: linear-gradient(180deg, rgba(255,250,235,0.6), rgba(217,195,136,0.18));
     border: 1px solid var(--rule-soft);
     text-decoration: none; color: inherit;
-    border-bottom: 1px solid var(--rule-soft);
   }
-  .library-card-draft { background: rgba(255, 250, 235, 0.3); }
-  a.library-card:hover { border-color: var(--gold); }
-  .library-card-head {
-    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
-    margin-bottom: 4px;
+  .chapter-card:hover { border-color: var(--gold); }
+  .chapter-numeral {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 1.8rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    line-height: 1;
+    flex: 0 0 auto;
+    padding-top: 4px;
   }
-  .library-card-title {
+  .chapter-body { flex: 1; }
+  .chapter-title {
     font-family: var(--display);
     font-size: 1.2rem;
     color: var(--forest-deep);
     font-weight: 600;
+    display: block;
   }
-  .library-card-meta {
-    font-family: var(--mono);
-    font-size: 0.78rem;
+  .chapter-summary {
+    margin: 6px 0 0;
     color: var(--ink-soft);
-    margin: 0 0 8px;
-    letter-spacing: 0.05em;
+    font-size: 0.95rem;
+    line-height: 1.55;
   }
-  .library-card-desc { margin: 0 0 12px; font-size: 0.95rem; color: var(--ink-soft); }
-  .library-card-actions { display: flex; gap: 12px; align-items: center; }
+
+  .contributed-section { margin-top: 64px; }
+  .contributed-intro {
+    color: var(--ink-soft);
+    max-width: 720px;
+    line-height: 1.65;
+  }
+  .contributed-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
 
   @media (max-width: 880px) {
-    .library-grid { grid-template-columns: 1fr; }
+    .chapter-grid { grid-template-columns: 1fr; }
   }
 </style>

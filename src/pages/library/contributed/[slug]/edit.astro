@@ -1,12 +1,12 @@
 ---
-import BaseLayout from '../../../layouts/BaseLayout.astro';
-import CsrfField from '../../../components/CsrfField.astro';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import CsrfField from '../../../../components/CsrfField.astro';
 
 export const prerender = false;
 
 const supabase = Astro.locals.supabase;
 const { slug: entrySlug } = Astro.params;
-if (!entrySlug) return Astro.redirect('/library');
+if (!entrySlug) return Astro.redirect('/library/contributed');
 
 const { data: entry } = await supabase
   .from('library_entries')
@@ -14,7 +14,7 @@ const { data: entry } = await supabase
   .eq('slug', entrySlug)
   .maybeSingle();
 
-if (!entry) return Astro.redirect('/library?error=' + encodeURIComponent('Entry not found.'));
+if (!entry) return Astro.redirect('/library/contributed?error=' + encodeURIComponent('Entry not found.'));
 
 const userId = Astro.locals.user?.id;
 const isAuthor = userId !== undefined && entry.created_by === userId;
@@ -45,6 +45,7 @@ function fmtSize(bytes: number | null): string {
   <main class="page">
     <div class="crumbs">
       <a href="/library">Library</a><span>›</span>
+      <a href="/library/contributed">Contributed</a><span>›</span>
       <em>{entry.title}</em>
     </div>
 

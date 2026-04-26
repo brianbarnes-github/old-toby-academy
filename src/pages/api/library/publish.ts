@@ -15,7 +15,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
 
   const entryId = String(formData.get('entry_id') ?? '').trim();
   const publish = String(formData.get('publish') ?? 'true') === 'true';
-  if (!entryId) return redirect('/library?error=Missing+entry');
+  if (!entryId) return redirect('/library/contributed?error=Missing+entry');
 
   const supabase = createSupabaseServerClient(cookies, request.headers);
 
@@ -27,7 +27,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
     .maybeSingle();
 
   if (error || !entry) {
-    return redirect(`/library?error=${encodeURIComponent(error?.message ?? 'Update failed.')}`);
+    return redirect(`/library/contributed?error=${encodeURIComponent(error?.message ?? 'Update failed.')}`);
   }
 
   await supabase.from('entries').insert({
@@ -36,7 +36,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
     details: { entry_id: entryId, slug: entry.slug },
   });
 
-  return redirect(`/library/${entry.slug}/edit?ok=${publish ? 'published' : 'unpublished'}`);
+  return redirect(`/library/contributed/${entry.slug}/edit?ok=${publish ? 'published' : 'unpublished'}`);
 };
 
-export const GET: APIRoute = async ({ redirect }) => redirect('/library');
+export const GET: APIRoute = async ({ redirect }) => redirect('/library/contributed');

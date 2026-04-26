@@ -1,0 +1,153 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+---
+
+<BaseLayout
+  title="Foundations · Library · Old Toby Academy"
+  description="Western music, the staff and clefs, note values, and rests."
+  activeNav="library"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/library">Library</a><span>›</span>
+      <em>Foundations</em>
+    </div>
+
+    <article class="library-chapter">
+      <div class="page-head">
+        <div class="eyebrow">Chapter I</div>
+        <h1>Foundations</h1>
+        <p class="kicker">Where Western music came from, how to read it on the staff, and the language of notes and silence.</p>
+      </div>
+
+      <h2>Western Music</h2>
+      <p>Western Music refers to the musical traditions that have developed in Europe and North America over centuries, heavily influenced by Western culture and history. It encompasses a wide range of styles, genres, and forms, reflecting the diverse cultural, social, and artistic movements throughout its evolution.</p>
+
+      <h3>Historical Development</h3>
+      <p>Western music has a rich and complex history that spans over millennia. It evolved from ancient Greek and Roman music, through the Middle Ages with Gregorian chant and early polyphony, to the Renaissance, Baroque, Classical, Romantic, and Modern eras. Each period brought significant changes in musical style, instrumentation, harmony, and form.</p>
+
+      <h3>Notation and Composition</h3>
+      <p>Western music is characterized by its sophisticated system of notation, which allows composers to write down their musical ideas precisely. This system includes staff notation, clefs, note values, and various symbols for dynamics, articulation, and expression. Composers use this notation to create works for various ensembles, from solo pieces to large orchestras.</p>
+
+      <h3>Harmony and Tonality</h3>
+      <p>Harmony plays a central role in Western music. The concept of tonality, based on the relationships between pitches and the organization of scales, has been a dominant feature for centuries. Major and minor scales, chord progressions, and harmonic conventions have shaped the tonal language of Western music, providing a framework for composers to create tension, resolution, and emotional expression.</p>
+
+      <h3>Genres and Forms</h3>
+      <p>Western music encompasses a wide range of genres and forms, including classical, jazz, blues, rock, pop, folk, and more. Each genre has its own conventions, instrumentation, and stylistic elements. Classical music includes symphonies, concertos, sonatas, and operas, while jazz features improvisation, syncopation, and swing rhythms.</p>
+
+      <h3>Performance Practices</h3>
+      <p>Western music is performed in various settings, from concert halls and opera houses to clubs and stadiums. Professional musicians undergo rigorous training in technique, interpretation, and musicality to perform works with precision and expression. Ensembles range from solo performers to small chamber groups to large orchestras and choirs.</p>
+
+      <h2>The Staff &amp; Clefs</h2>
+      <p>In Western music notation, the <strong>staff</strong> consists of five lines and four spaces. Each line and space represents a different pitch. The pitch of a note is determined by its vertical position on the staff.</p>
+
+      <h3>Treble Clef (G Clef)</h3>
+      <p>The treble clef is commonly used for higher-pitched instruments and voices.</p>
+      <ul>
+        <li><strong>Lines (bottom → top):</strong> E, G, B, D, F — mnemonic <em>Every Good Boy Does Fine</em>.</li>
+        <li><strong>Spaces (bottom → top):</strong> F, A, C, E — mnemonic <em>FACE</em>.</li>
+      </ul>
+
+      <h3>Bass Clef (F Clef)</h3>
+      <p>The bass clef is typically used for lower-pitched instruments and voices.</p>
+      <ul>
+        <li><strong>Lines (bottom → top):</strong> G, B, D, F, A — mnemonic <em>Good Boys Do Fine Always</em>.</li>
+        <li><strong>Spaces (bottom → top):</strong> A, C, E, G — mnemonic <em>All Cows Eat Grass</em>.</li>
+      </ul>
+
+      <h2>Note Values</h2>
+      <p>Notes represent the duration of a sound. Their shapes indicate how long they should be held. The five common note values:</p>
+      <dl class="deflist">
+        <dt>Whole Note (Semibreve)</dt>
+        <dd>Four beats in 4/4 time. Equivalent to two half notes, four quarter notes, eight eighth notes.</dd>
+        <dt>Half Note (Minim)</dt>
+        <dd>Two beats. Equivalent to two quarter notes, four eighth notes.</dd>
+        <dt>Quarter Note (Crotchet)</dt>
+        <dd>One beat. Equivalent to two eighth notes, four sixteenth notes.</dd>
+        <dt>Eighth Note (Quaver)</dt>
+        <dd>Half a beat. Equivalent to two sixteenth notes.</dd>
+        <dt>Sixteenth Note (Semiquaver)</dt>
+        <dd>Quarter of a beat.</dd>
+      </dl>
+
+      <h3>The Relationship Between Note Values</h3>
+      <p>Each note value is half the duration of the one before it. A whole note holds for as long as two halves, four quarters, eight eighths, sixteen sixteenths. Longer note values receive more beats; shorter ones, fewer.</p>
+
+      <h2>Rests</h2>
+      <p>Rests indicate periods of silence or absence of sound within a musical piece. They are as much a part of the music as the notes themselves.</p>
+
+      <h3>What rests do for you</h3>
+      <dl class="deflist">
+        <dt>Maintain silence</dt>
+        <dd>Rests ensure musicians know when to refrain from playing or singing. The silence creates contrast, dynamics, and expression.</dd>
+        <dt>Establish rhythmic patterns</dt>
+        <dd>Rests punctuate the rhythm — pauses and divisions that give a piece clarity and precision.</dd>
+        <dt>Control pacing and timing</dt>
+        <dd>The duration of silence between notes or phrases keeps a consistent tempo and lets the music breathe.</dd>
+        <dt>Add musical interest</dt>
+        <dd>Strategic rests create rhythmic tension, anticipation, suspense, surprise.</dd>
+        <dt>Support interpretation</dt>
+        <dd>Length and placement of rests convey emotion, mood, and phrasing.</dd>
+        <dt>Clarify notation</dt>
+        <dd>Rests make the notation easier to read; they tell musicians where their entrances and exits are.</dd>
+      </dl>
+
+      <h3>Examples of rests</h3>
+      <ul>
+        <li><strong>Whole rest</strong> — a complete measure of silence.</li>
+        <li><strong>Half rest</strong> — two beats of silence (in 4/4).</li>
+        <li><strong>Quarter rest</strong> — one beat.</li>
+        <li><strong>Eighth rest</strong> — half a beat.</li>
+        <li><strong>Sixteenth rest</strong> — a quarter of a beat.</li>
+      </ul>
+
+      <nav class="lesson-nav" style="margin-top: 64px;">
+        <a href="/library" class="prev">
+          <span class="nav-label">← Library</span>
+          <span class="nav-title">Catalogue</span>
+        </a>
+        <a href="/library/scales-and-modes" class="next">
+          <span class="nav-label">Next · II →</span>
+          <span class="nav-title">Scales &amp; Modes</span>
+        </a>
+      </nav>
+    </article>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .library-chapter { max-width: 760px; margin: 0 auto; }
+  .library-chapter h2 {
+    font-style: italic; font-weight: 500;
+    margin-top: 56px; margin-bottom: 16px;
+    border-top: 1px double var(--rule-soft);
+    padding-top: 24px;
+  }
+  .library-chapter h3 { font-weight: 500; margin-top: 28px; font-size: 1.3rem; color: var(--forest-deep); }
+  .library-chapter p { margin: 0 0 1em; line-height: 1.65; }
+  .library-chapter ul, .library-chapter ol { margin: 1em 0; padding-left: 24px; }
+  .library-chapter li { margin-bottom: 0.4em; }
+  .library-chapter blockquote {
+    border-left: 3px solid var(--gold);
+    padding-left: 16px; font-style: italic; color: var(--ink-soft);
+    margin: 16px 0;
+  }
+  .library-chapter img {
+    max-width: 100%; height: auto;
+    margin: 24px auto;
+    display: block;
+    border: 1px solid var(--rule);
+    box-shadow: 0 0 0 6px var(--parchment), 0 0 0 7px var(--rule-soft);
+  }
+  .library-chapter figure { margin: 32px 0; }
+  .library-chapter figcaption {
+    font-style: italic;
+    color: var(--ink-soft);
+    text-align: center;
+    font-size: 0.92rem;
+    margin-top: 8px;
+  }
+</style>

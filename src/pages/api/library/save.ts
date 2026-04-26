@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
   try {
     formData = await request.formData();
   } catch {
-    return redirect('/library?error=' + encodeURIComponent('Could not read upload.'));
+    return redirect('/library/contributed?error=' + encodeURIComponent('Could not read upload.'));
   }
 
   if (!verifyCsrf(formData, cookies)) {
@@ -43,11 +43,11 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
   const file = formData.get('file');
 
   if (!slug || !title) {
-    const back = entryId ? `/library/${slug}/edit` : '/library/new';
+    const back = entryId ? `/library/contributed/${slug}/edit` : '/library/contributed/new';
     return redirect(`${back}?error=${encodeURIComponent('Slug and title are required.')}`);
   }
   if (!SLUG_RE.test(slug)) {
-    const back = entryId ? `/library/${slug}/edit` : '/library/new';
+    const back = entryId ? `/library/contributed/${slug}/edit` : '/library/contributed/new';
     return redirect(`${back}?error=${encodeURIComponent('Slug must be lowercase letters, digits, and hyphens.')}`);
   }
 
@@ -61,7 +61,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
 
   if (file instanceof File && file.size > 0) {
     if (file.size > MAX_BYTES) {
-      const back = entryId ? `/library/${slug}/edit` : '/library/new';
+      const back = entryId ? `/library/contributed/${slug}/edit` : '/library/contributed/new';
       return redirect(`${back}?error=${encodeURIComponent('File must be under 10 MB.')}`);
     }
     const folder = uuid();
@@ -76,12 +76,12 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
       .upload(storagePath, buffer, { contentType, upsert: false });
 
     if (upErr) {
-      const back = entryId ? `/library/${slug}/edit` : '/library/new';
+      const back = entryId ? `/library/contributed/${slug}/edit` : '/library/contributed/new';
       return redirect(`${back}?error=${encodeURIComponent(`Upload failed: ${upErr.message}`)}`);
     }
   } else if (!entryId) {
     // Creating a new entry without a file is invalid.
-    return redirect(`/library/new?error=${encodeURIComponent('Please pick a file to upload.')}`);
+    return redirect(`/library/contributed/new?error=${encodeURIComponent('Please pick a file to upload.')}`);
   }
 
   if (!entryId) {
@@ -107,7 +107,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
       if (storagePath) {
         await supabase.storage.from('library-files').remove([storagePath]);
       }
-      return redirect(`/library/new?error=${encodeURIComponent(error.message)}`);
+      return redirect(`/library/contributed/new?error=${encodeURIComponent(error.message)}`);
     }
 
     await supabase.from('entries').insert({
@@ -116,7 +116,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
       details: { slug, title, file_name: fileName },
     });
 
-    return redirect(`/library/${data!.slug}/edit?ok=created`);
+    return redirect(`/library/contributed/${data!.slug}/edit?ok=created`);
   } else {
     // UPDATE — replace metadata; if a new file was supplied, replace it too
     const updates: Record<string, any> = { slug, title, description, category };
@@ -146,7 +146,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
       if (storagePath) {
         await supabase.storage.from('library-files').remove([storagePath]);
       }
-      return redirect(`/library/${slug}/edit?error=${encodeURIComponent(error.message)}`);
+      return redirect(`/library/contributed/${slug}/edit?error=${encodeURIComponent(error.message)}`);
     }
 
     // Remove the old file once the new one is committed
@@ -160,8 +160,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
       details: { slug, title, replaced_file: !!storagePath },
     });
 
-    return redirect(`/library/${slug}/edit?ok=updated`);
+    return redirect(`/library/contributed/${slug}/edit?ok=updated`);
   }
 };
 
-export const GET: APIRoute = async ({ redirect }) => redirect('/library');
+export const GET: APIRoute = async ({ redirect }) => redirect('/library/contributed');

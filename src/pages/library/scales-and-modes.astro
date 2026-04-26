@@ -1,0 +1,108 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+---
+
+<BaseLayout
+  title="Scales & Modes · Library · Old Toby Academy"
+  description="Diatonic scales, the major and minor families, chromaticism, and the seven church modes."
+  activeNav="library"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/library">Library</a><span>›</span>
+      <em>Scales &amp; Modes</em>
+    </div>
+
+    <article class="library-chapter">
+      <div class="page-head">
+        <div class="eyebrow">Chapter II</div>
+        <h1>Scales &amp; Modes</h1>
+        <p class="kicker">The diatonic system, the major and minor families, chromaticism, and the seven modes that grow out of the major scale.</p>
+      </div>
+
+      <h2>Musical Scales</h2>
+
+      <h3>Diatonic Scale System</h3>
+      <p>Western music is built on the diatonic scale system, which consists of seven notes within an octave. The most common scale is the major scale, followed by its relative minor. These scales are characterized by specific patterns of whole and half steps, which create the distinctive sound and character of each.</p>
+
+      <h3>Major and Minor Scales</h3>
+      <p>The major scale is constructed with a pattern of whole steps and half steps (W–W–H–W–W–W–H), while the minor scale has different patterns for its natural, harmonic, and melodic forms. Major scales are often associated with brightness and positivity; minor scales with sadness or melancholy.</p>
+
+      <h3>Chromaticism and Modes</h3>
+      <p>Western music also uses the chromatic scale, which includes all twelve pitches within an octave — natural and altered alike. The modes (Ionian, Dorian, Phrygian, Lydian, Mixolydian, Aeolian, Locrian) offer alternative tonalities within the diatonic system, adding variety and color.</p>
+
+      <h3>Equal Temperament</h3>
+      <p>The tuning system known as <strong>equal temperament</strong> is a hallmark of Western music. It divides the octave into twelve equal intervals, allowing for flexible modulation and consistent tuning across all keys.</p>
+
+      <h3>Historical Development</h3>
+      <p>Western music has seen many scales and tuning systems over time. Early music used modes such as Gregorian chant in the medieval period. The Renaissance brought the rise of major and minor scales, leading to the tonal system that dominated Western music until the 20th century.</p>
+
+      <h3>Influence on Global Music</h3>
+      <p>Western scales and tonal systems have had a significant impact on music around the world, influencing scale development in many cultures. Many non-Western traditions have adopted aspects of Western tonality while retaining their unique character.</p>
+
+      <h2>Types of Scales</h2>
+      <p>In Western music, the notes used within scales are typically represented by the letters A, B, C, D, E, F, and G, organized in ascending order and repeated at each octave. The arrangement of these notes determines the type of scale.</p>
+
+      <dl class="deflist">
+        <dt>Major Scale <em>(do, re, mi, fa, sol, la, ti)</em></dt>
+        <dd><span class="mono">C – D – E – F – G – A – B – C</span></dd>
+
+        <dt>Natural Minor Scale</dt>
+        <dd><span class="mono">A – B – C – D – E – F – G – A</span></dd>
+
+        <dt>Harmonic Minor Scale</dt>
+        <dd><span class="mono">A – B – C – D – E – F – G♯ – A</span> — the seventh raised by a half step.</dd>
+
+        <dt>Melodic Minor Scale (ascending)</dt>
+        <dd><span class="mono">A – B – C – D – E – F♯ – G♯ – A</span> — sixth and seventh raised when ascending; the natural minor descending.</dd>
+
+        <dt>Chromatic Scale</dt>
+        <dd><span class="mono">A – A♯ – B – C – C♯ – D – D♯ – E – F – F♯ – G – G♯ – A</span></dd>
+      </dl>
+
+      <p>These notes form the foundation of melodies, harmonies, and chord progressions. Through varied combinations and arrangements, composers create the rich tapestry of sounds and expressions found in Western music.</p>
+
+      <h2>Modes</h2>
+      <p>Scale modes are variations of the major scale (the Ionian mode) that start on different degrees of the scale. Each mode has its own unique sound and characteristic intervals. The Dorian mode starts on the second degree of the major scale (D–E–F–G–A–B–C–D); the Phrygian on the third (E–F–G–A–B–C–D–E); and so on through the seven.</p>
+
+      <dl class="deflist">
+        <dt>Ionian</dt>
+        <dd>The standard major scale. Bright and happy. Common in many genres.</dd>
+
+        <dt>Dorian</dt>
+        <dd>Starts on the second degree of the major scale. Minor quality with a major sixth — somewhat melancholy but uplifting.</dd>
+
+        <dt>Phrygian</dt>
+        <dd>Starts on the third degree. Distinctly minor, characterized by its flattened second.</dd>
+
+        <dt>Lydian</dt>
+        <dd>Starts on the fourth degree. Bright and dreamy, with a raised fourth compared to the major scale.</dd>
+
+        <dt>Mixolydian</dt>
+        <dd>Starts on the fifth degree. Bluesy, slightly jazzy, with a flattened seventh.</dd>
+
+        <dt>Aeolian</dt>
+        <dd>The natural minor scale. Starts on the sixth degree. Dark and moody.</dd>
+
+        <dt>Locrian</dt>
+        <dd>Starts on the seventh degree. Diminished quality due to flattened second and fifth. Rare in traditional tonal music.</dd>
+      </dl>
+
+      <p>Each mode carries its own intervals and characteristic colour, useful for setting different moods. Understanding modes adds depth and variety to composition and improvisation alike.</p>
+
+      <nav class="lesson-nav" style="margin-top: 64px;">
+        <a href="/library/foundations" class="prev">
+          <span class="nav-label">← Previous · I</span>
+          <span class="nav-title">Foundations</span>
+        </a>
+        <a href="/library/rhythm-and-meter" class="next">
+          <span class="nav-label">Next · III →</span>
+          <span class="nav-title">Rhythm &amp; Meter</span>
+        </a>
+      </nav>
+    </article>
+  </main>
+</BaseLayout>

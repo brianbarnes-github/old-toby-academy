@@ -1,0 +1,132 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+---
+
+<BaseLayout
+  title="Rhythm & Meter · Library · Old Toby Academy"
+  description="Pulse, time signatures, syncopation, and how meter shapes the feel of different musical genres."
+  activeNav="library"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/library">Library</a><span>›</span>
+      <em>Rhythm &amp; Meter</em>
+    </div>
+
+    <article class="library-chapter">
+      <div class="page-head">
+        <div class="eyebrow">Chapter III</div>
+        <h1>Rhythm &amp; Meter</h1>
+        <p class="kicker">How sound is organized in time — pulse, time signatures, syncopation, and the rhythmic character of different genres.</p>
+      </div>
+
+      <h2>Defining Rhythm and Meter</h2>
+      <p><strong>Rhythm</strong> refers to the arrangement of sounds and silences in time — the pattern of long and short notes, or the duration of musical events. <strong>Meter</strong> is the organization of beats into regular groupings; it gives music its sense of pulse and is typically indicated by a time signature.</p>
+
+      <h3>Counting Note Values</h3>
+      <p>The basic rhythmic values in Western music notation are whole, half, quarter, eighth, and sixteenth notes. Here is how each is counted within the most common meter, 4/4.</p>
+      <dl class="deflist">
+        <dt>Whole Note (Semibreve)</dt>
+        <dd>Four beats in 4/4. One per measure — counted "1, 2, 3, 4" or held for the entire measure.</dd>
+
+        <dt>Half Note (Minim)</dt>
+        <dd>Two beats in 4/4. Counted "1, 2" or held for the first two beats of the measure.</dd>
+
+        <dt>Quarter Note (Crotchet)</dt>
+        <dd>One beat in 4/4. Counted "1, 2, 3, 4" — each number a beat.</dd>
+
+        <dt>Eighth Note (Quaver)</dt>
+        <dd>Half a beat in 4/4. Counted "1 &amp; 2 &amp; 3 &amp; 4 &amp;" — the "&amp;" is the second half of each beat.</dd>
+
+        <dt>Sixteenth Note (Semiquaver)</dt>
+        <dd>Quarter of a beat in 4/4. Counted "1 e &amp; a, 2 e &amp; a, 3 e &amp; a, 4 e &amp; a" — each syllable a subdivision.</dd>
+      </dl>
+
+      <h3>Counting in Other Meters</h3>
+      <p>In meters other than 4/4, the counting changes but the basic note values stay the same.</p>
+      <ul>
+        <li>In <strong>3/4</strong> (waltz time), the count is "1, 2, 3" per measure, with a quarter note receiving one beat.</li>
+        <li>In <strong>6/8</strong> (compound duple meter), each measure typically contains two beats, each subdivided into three eighth notes — so "1 &amp; a, 2 &amp; a" per measure.</li>
+      </ul>
+
+      <h2>Time Signatures</h2>
+      <p>Time signatures indicate meter in music notation. They specify the number of beats per measure and the type of note that receives one beat. The top and bottom numbers each have specific meanings:</p>
+      <ul>
+        <li><strong>Top number</strong> — the number of beats per measure. In 4/4, four beats per measure.</li>
+        <li><strong>Bottom number</strong> — the type of note that gets one beat, expressed as a fraction of a whole note. A <em>4</em> on the bottom means a quarter note gets one beat; an <em>8</em> means an eighth note does.</li>
+      </ul>
+
+      <h3>Examples</h3>
+      <dl class="deflist">
+        <dt>4/4 — Common Time</dt>
+        <dd>Four beats per measure, quarter note gets one beat. The most common time signature in Western music.</dd>
+
+        <dt>3/4 — Waltz Time</dt>
+        <dd>Three beats per measure, quarter note gets one beat. Associated with waltzes.</dd>
+
+        <dt>6/8 — Compound Duple Meter</dt>
+        <dd>Six eighth notes per measure, eighth note gets one beat. Common in marches and lively music.</dd>
+      </dl>
+
+      <h2>Syncopation</h2>
+      <p>Syncopation is a rhythmic technique where emphasis is placed on off-beats or weak beats within a phrase, creating tension and anticipation. Instead of accenting strong beats (typically 1 and 3 in 4/4), syncopated rhythms accent weak beats or the spaces between beats. This is achieved through tied notes, rests, and accents on upbeats.</p>
+
+      <h3>What syncopation does for the music</h3>
+      <dl class="deflist">
+        <dt>Creates groove and momentum</dt>
+        <dd>Accents on unexpected beats make the music feel dynamic and energetic — it makes listeners want to move.</dd>
+
+        <dt>Adds tension and interest</dt>
+        <dd>Disrupting the regular pattern adds excitement and intrigue, keeping the listener engaged.</dd>
+
+        <dt>Enhances musical texture</dt>
+        <dd>Layers complexity that contrasts with straightforward rhythms, making the music richer.</dd>
+
+        <dt>Expresses musical style</dt>
+        <dd>Common in jazz, funk, Latin, and rock — it helps define the characteristic feel of those genres.</dd>
+      </dl>
+
+      <h3>Syncopated standards</h3>
+      <ul>
+        <li><strong>"Superstition"</strong> — Stevie Wonder. The guitar riff and drum pattern are deeply syncopated.</li>
+        <li><strong>"Take Five"</strong> — Dave Brubeck. Famous for its 5/4 meter and syncopated melody.</li>
+        <li><strong>"I Got Rhythm"</strong> — George Gershwin. Syncopation throughout melody and accompaniment.</li>
+        <li><strong>"Billie Jean"</strong> — Michael Jackson. The bassline accents off-beats; iconic and danceable.</li>
+        <li><strong>"Smooth"</strong> — Santana ft. Rob Thomas. Latin-infused syncopation in guitar and percussion.</li>
+      </ul>
+
+      <h2>Meter by Genre</h2>
+      <p>Meter — the organization of beats into regular groupings — varies significantly across genres, contributing to the distinct rhythmic feel of each style.</p>
+
+      <h3>Classical Music</h3>
+      <p>Classical music often uses meters such as 3/4 (waltz), 4/4 (common), and 2/4 (duple), among others. Composers typically use symmetrical meters where each measure divides into equal parts. Modern compositions and folk-influenced pieces may use irregular meters such as 5/4 or 7/8.</p>
+
+      <h3>Jazz</h3>
+      <p>Jazz features complex and flexible meters with frequent syncopation and swing feel. Common meters include 4/4, 3/4, and 6/8, but jazz musicians frequently play with subdivisions and accents, creating polyrhythms and cross-rhythms. Odd meters like 5/4, 7/4, or 11/8 add to the rhythmic interest and improvisational character.</p>
+
+      <h3>Rock Music</h3>
+      <p>Rock typically uses simple meters such as 4/4 or 2/4 (cut time), emphasizing a strong backbeat on beats 2 and 4. The rhythm section provides a driving groove and steady pulse. Some bands incorporate irregular meters into compositions for added interest, especially in progressive or avant-garde rock.</p>
+
+      <h3>Comparison</h3>
+      <ul>
+        <li><strong>Classical</strong> — adheres to traditional meters, focused on formal structure and clarity.</li>
+        <li><strong>Jazz</strong> — rhythmically adventurous; emphasizes improvisation, syncopation, swing, and complex meters.</li>
+        <li><strong>Rock</strong> — steady, driving rhythm, usually 4/4; focused on groove and energy.</li>
+      </ul>
+
+      <nav class="lesson-nav" style="margin-top: 64px;">
+        <a href="/library/scales-and-modes" class="prev">
+          <span class="nav-label">← Previous · II</span>
+          <span class="nav-title">Scales &amp; Modes</span>
+        </a>
+        <a href="/library/key-signatures" class="next">
+          <span class="nav-label">Next · IV →</span>
+          <span class="nav-title">Key Signatures</span>
+        </a>
+      </nav>
+    </article>
+  </main>
+</BaseLayout>
