@@ -8,7 +8,22 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY must be set in env');
 }
 
-export type Role = 'student' | 'faculty' | 'headmaster';
+// Built-in role slugs. Custom roles created by the headmaster won't
+// be in this union — use plain `string` for those code paths.
+export type SystemRole = 'student' | 'faculty' | 'headmaster';
+export type Role = SystemRole | (string & {});
+
+// Curated permission catalog. New permissions need both a row in
+// public.permissions AND an entry here for type safety.
+export type Permission =
+  | 'admin.access'
+  | 'tokens.list'
+  | 'tokens.mint'
+  | 'tokens.revoke'
+  | 'audit.read'
+  | 'users.list'
+  | 'users.assign_roles'
+  | 'roles.manage';
 
 export type ExperienceLevel = 'none' | 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
