@@ -1,0 +1,18 @@
+---
+interface Props {
+  variant?: 'full' | 'short';
+}
+const { variant = 'full' } = Astro.props;
+---
+
+<footer class="footer">
+  {variant === 'full' ? (
+    <>
+      <span class="ornament">❦</span> Old Toby Academy <span class="ornament">·</span> a music school for the realm <span class="ornament">·</span> <em>Instructors are known by yellow names; students by green</em> <span class="ornament">❦</span>
+    </>
+  ) : (
+    <>
+      <span class="ornament">❦</span> Old Toby Academy <span class="ornament">·</span> a music school for the realm <span class="ornament">❦</span>
+    </>
+  )}
+</footer>

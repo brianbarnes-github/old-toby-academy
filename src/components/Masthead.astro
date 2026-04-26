@@ -1,0 +1,36 @@
+---
+type NavKey = 'home' | 'courses' | 'faculty' | 'alumni' | null;
+interface Props {
+  activeNav?: NavKey;
+}
+const { activeNav = null } = Astro.props;
+---
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="crest" href="/">
+      <svg class="crest-mark" viewBox="0 0 100 100" aria-hidden="true">
+        <path d="M50 6 L88 16 L88 46 C88 66 72 84 50 94 C28 84 12 66 12 46 L12 16 Z" fill="#1f3a2e" stroke="#a8843a" stroke-width="2"></path>
+        <path d="M50 11 L84 20 L84 46 C84 64 70 80 50 89 C30 80 16 64 16 46 L16 20 Z" stroke="#a8843a" fill="none" stroke-width="0.8" opacity="0.6"></path>
+        <g fill="#c9a14e" stroke="none">
+          <ellipse cx="42" cy="60" rx="6" ry="5" transform="rotate(-20 42 60)"></ellipse>
+          <rect x="46" y="34" width="2" height="22"></rect>
+          <path d="M48 34 Q 58 36 58 46 Q 56 40 48 40 Z"></path>
+          <ellipse cx="62" cy="64" rx="6" ry="5" transform="rotate(-20 62 64)"></ellipse>
+          <rect x="66" y="38" width="2" height="22"></rect>
+        </g>
+        <path d="M48 34 L66 38" stroke="#c9a14e" stroke-width="2" fill="none"></path>
+      </svg>
+      <div class="crest-text">
+        <span class="crest-name">OLD TOBY ACADEMY</span>
+        <span class="crest-sub">— a school of music for the realm —</span>
+      </div>
+    </a>
+    <nav class="nav">
+      <a href="/" class:list={[{ active: activeNav === 'home' }]}>Home</a>
+      <a href="/courses" class:list={[{ active: activeNav === 'courses' }]}>Courses</a>
+      <a href="/faculty" class:list={[{ active: activeNav === 'faculty' }]}>Faculty</a>
+      <a href="/alumni" class:list={[{ active: activeNav === 'alumni' }]}>Alumni Hall</a>
+    </nav>
+  </div>
+</header>

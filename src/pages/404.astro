@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Not in the Ledger · Old Toby Academy"
+  description="The page you sought is not in the academy's ledger."
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="lost-wrap">
+      <div class="lost-num">IV · IV · IV</div>
+      <div class="eyebrow">Not in the Ledger</div>
+      <h1>This corner of the realm is uncharted.</h1>
+      <p>The page you sought is not among the academy's halls. Perhaps the link is old, or the road has shifted beneath your feet.</p>
+      <div class="lost-actions">
+        <a class="btn" href="/">Return Home</a>
+        <a class="btn btn-ghost" href="/courses">Browse the Curriculum</a>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .lost-wrap { max-width: 720px; margin: 96px auto; text-align: center; padding: 64px 32px; }
+  .lost-num {
+    font-family: var(--display); font-style: italic;
+    color: var(--oxblood); font-size: clamp(5rem, 12vw, 8rem);
+    line-height: 1; margin-bottom: 12px; letter-spacing: 0.04em;
+  }
+  .lost-wrap h1 { font-style: italic; font-weight: 500; margin-bottom: 16px; }
+  .lost-wrap p { color: var(--ink-soft); max-width: 48ch; margin: 0 auto 28px; }
+  .lost-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+</style>

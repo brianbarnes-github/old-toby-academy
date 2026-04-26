@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Request Received · Old Toby Academy"
+  description="Your request to enter Alumni Hall has been entered into the ledger."
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="thanks-wrap">
+      <div class="eyebrow">Request Received</div>
+      <h1>Your name is in the ledger.</h1>
+      <div class="ornament">❦</div>
+      <p>The faculty will review your request shortly. Watch your inbox or in-game messages — a reply will follow when the door is opened.</p>
+      <div class="actions">
+        <a class="btn btn-ghost" href="/alumni">← Back to Alumni Hall</a>
+        <a class="btn" href="/">Return Home</a>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .thanks-wrap {
+    max-width: 640px;
+    margin: 96px auto;
+    text-align: center;
+    padding: 56px 32px;
+    border: 1px solid var(--rule);
+    box-shadow: 0 0 0 6px var(--parchment), 0 0 0 7px var(--rule-soft);
+    background: linear-gradient(180deg, rgba(255,250,235,0.6), rgba(217,195,136,0.18));
+  }
+  .thanks-wrap h1 {
+    font-style: italic; font-weight: 500;
+    font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 12px;
+  }
+  .thanks-wrap p { color: var(--ink-soft); }
+  .thanks-wrap .ornament { color: var(--gold); font-size: 1.6rem; margin: 24px 0; }
+  .thanks-wrap .actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+</style>

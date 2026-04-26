@@ -2,3 +2,12 @@
 .netlify/
 node_modules/
 *.log
+
+# Astro
+.astro/
+dist/
+
+# Env
+.env
+.env.local
+.env.*.local

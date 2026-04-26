@@ -1,0 +1,349 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Old Toby Academy — A School for Music in the Realm"
+  description="A leather-bound academy for making music in Lord of the Rings Online — ABC notation, MIDI, instruments, and song-making, taught from first letter to full band concert."
+  ogImage="/assets/lab.jpeg"
+  activeNav="home"
+>
+  <main class="page">
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-text">
+        <div class="eyebrow">Spring Term · Fourth Age</div>
+        <div class="title-block">
+          <h1><em>Where the magic of music</em><strong>gets schooled.</strong></h1>
+        </div>
+        <p class="hero-lede">
+          Old Toby Academy is a quiet hall of learning for those who would make music inside the realm — minstrel, hobbits, wizards and tinkerers alike. From the first letter of an <code>abc</code> file to a full band on the streets of Bree, our curriculum walks you the whole road.
+        </p>
+        <div class="hero-cta">
+          <a class="btn" href="/courses">View the Curriculum</a>
+          <a class="btn btn-ghost" href="/courses/abc-101">Sample a Lesson</a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="/assets/lab.jpeg" alt="A lute amid drifting musical notation" />
+      </div>
+    </section>
+
+    <div class="rule-ornament">❦</div>
+
+    <!-- Three pillars -->
+    <section>
+      <div class="text-center" style="margin-bottom: 32px;">
+        <div class="eyebrow">What You Shall Learn</div>
+        <h2 style="font-style: italic; font-weight: 500;">Three crafts, woven together</h2>
+      </div>
+      <div class="pillars">
+        <div class="pillar">
+          <span class="roman">I.</span>
+          <h3>Notation</h3>
+          <p>The language of <code>abc</code> — letters and ledger lines, ties and triplets. We teach the syntax, then we teach the <em>style</em>.</p>
+        </div>
+        <div class="pillar">
+          <span class="roman">II.</span>
+          <h3>The Engine</h3>
+          <p>How a midi file thinks: header chunks, track chunks, notes and meta-events. Understand the engine, repair the breakdowns.</p>
+        </div>
+        <div class="pillar">
+          <span class="roman">III.</span>
+          <h3>The Instruments</h3>
+          <p>Lutes and lonely-mountain harps, fiddles and pibgorns, drums of every cadence. Each has a voice — we teach you to hear it.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Motto / quote -->
+    <section class="motto-block">
+      <p class="motto">“Never lose the melody. More is not better.<br />Find the balance, and emphasise the hook.”</p>
+      <div class="motto-attr">— The Four Precepts of the Final Recital</div>
+    </section>
+
+    <!-- Curriculum -->
+    <section>
+      <div class="text-center" style="margin-bottom: 24px;">
+        <div class="eyebrow">Course of Study</div>
+        <h2 style="font-style: italic; font-weight: 500;">Eight courses, two terms, one concert</h2>
+        <p class="kicker" style="max-width: 60ch; margin: 0 auto;">Begin at the beginning. Each course brings learning material, a guided question hour, an exercise, and — when warranted — a hands-on lab in voice chat.</p>
+      </div>
+
+      <div class="curriculum">
+        <div class="term">
+          <h2>The Basic Term</h2>
+          <div class="term-roman">FUNDAMENTALS · I — IV</div>
+          <ol>
+            <li>
+              <span class="lesson-title">ABC Notation 101 <small>The fundamentals of abc and what it looks like.</small></span>
+              <a class="lesson-link" href="/courses/abc-101">Read →</a>
+            </li>
+            <li>
+              <span class="lesson-title">MIDI 101 <small>What a midi file is, and how the realm uses it.</small></span>
+              <a class="lesson-link" href="/courses#midi-101">Read →</a>
+            </li>
+            <li>
+              <span class="lesson-title">Instruments 101 <small>Every instrument in the game, including the unique nature of drums.</small></span>
+              <a class="lesson-link" href="/courses#instruments-101">Read →</a>
+            </li>
+            <li>
+              <span class="lesson-title">Song Making 101 <small>Building a basic song with the transcribing tool of your choice.</small></span>
+              <a class="lesson-link" href="/courses#song-making-101">Read →</a>
+            </li>
+          </ol>
+        </div>
+
+        <div class="term">
+          <h2>The Advanced Term</h2>
+          <div class="term-roman">MASTERY · V — VIII</div>
+          <ol>
+            <li>
+              <span class="lesson-title">ABC Notation 201 <small>Troubleshooting songs and enhancing beyond the transcribe tools.</small></span>
+              <a class="lesson-link" href="/courses#abc-201">Read →</a>
+            </li>
+            <li>
+              <span class="lesson-title">MIDI 201 <small>Editing and repairing midi files in earnest.</small></span>
+              <a class="lesson-link" href="/courses#midi-201">Read →</a>
+            </li>
+            <li>
+              <span class="lesson-title">Instruments 201 <small>Advanced techniques for every voice — the workarounds, the magic.</small></span>
+              <a class="lesson-link" href="/courses#instruments-201">Read →</a>
+            </li>
+            <li>
+              <span class="lesson-title">Song Making 201 <small>Balance, fine tune, and test a song until it shines.</small></span>
+              <a class="lesson-link" href="/courses#song-making-201">Read →</a>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <div class="rule-ornament">✦ ❦ ✦</div>
+
+    <!-- How it works -->
+    <section>
+      <div class="text-center" style="margin-bottom: 24px;">
+        <div class="eyebrow">The Manner of Teaching</div>
+        <h2 style="font-style: italic; font-weight: 500;">How a course is run</h2>
+      </div>
+      <div class="howitworks">
+        <div class="step">
+          <span class="num">i</span>
+          <h4>READ</h4>
+          <p>Learning material is laid out in plain language, with examples to study.</p>
+        </div>
+        <div class="step">
+          <span class="num">ii</span>
+          <h4>ASK</h4>
+          <p>Questions and answers in the course channel, with the instructor presiding.</p>
+        </div>
+        <div class="step">
+          <span class="num">iii</span>
+          <h4>PRACTICE</h4>
+          <p>An exercise, where the work is set by hand and the result is heard.</p>
+        </div>
+        <div class="step">
+          <span class="num">iv</span>
+          <h4>LAB</h4>
+          <p>When a course warrants it, a voice-chat lab with screen-share and a master at the helm.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spotlight on Alumni Hall -->
+    <section class="spotlight">
+      <div class="spotlight-img">
+        <img src="/assets/oldtoby.jpg" alt="The Old Toby seal" />
+      </div>
+      <div>
+        <div class="eyebrow">After Graduation</div>
+        <h2>Alumni Hall &amp; the Concert Band</h2>
+        <p>Upon graduation each class is encouraged to form a band and put on a concert showcasing what they have learned. Alumni go on to share knowledge across cohorts in the Hall — for continued education, troubleshooting, custom-midi requests, and the occasional periodic project to keep the fingers limber.</p>
+        <a class="btn btn-ghost" href="/alumni">Step into Alumni Hall →</a>
+      </div>
+    </section>
+
+    <!-- Enroll banner -->
+    <section class="enroll-banner">
+      <div class="eyebrow gold" style="color: var(--gold-light);">Open Enrolment</div>
+      <h2>The hall is open. The lutes are tuned.</h2>
+      <p>New cohorts gather each season. Bring a midi file, a curious ear, and a willingness to read the source.</p>
+      <a class="btn" href="/courses">Begin with ABC 101</a>
+    </section>
+
+  </main>
+</BaseLayout>
+
+<style is:global>
+  /* ===== Hero ===== */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 64px;
+    align-items: center;
+    padding: 72px 0 56px;
+  }
+  .hero-text .title-block {
+    border-top: 3px double var(--rule);
+    border-bottom: 3px double var(--rule);
+    padding: 22px 0;
+    margin: 18px 0 24px;
+  }
+  .hero h1 { font-style: italic; margin: 0; font-weight: 500; line-height: 1.05; }
+  .hero h1 strong { font-style: normal; font-weight: 700; display: block; font-size: 1.18em; letter-spacing: -0.01em; }
+  .hero-lede { font-size: 1.18rem; color: var(--ink-soft); max-width: 56ch; }
+  .hero-image {
+    position: relative;
+    border: 1px solid var(--rule);
+    box-shadow: 0 0 0 8px var(--parchment-2), 0 0 0 9px var(--rule), 0 14px 40px rgba(20, 39, 30, 0.25);
+    transform: rotate(-1deg);
+  }
+  .hero-image img { display: block; width: 100%; height: auto; filter: sepia(0.18) contrast(1.05); }
+  .hero-image::after {
+    content: "Maestro Vydor's atelier";
+    position: absolute;
+    bottom: -38px; right: 12px;
+    font-style: italic; font-size: 0.9rem;
+    color: var(--ink-soft);
+    transform: rotate(1deg);
+  }
+  .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+
+  /* ===== Three pillars ===== */
+  .pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin: 32px 0 48px; }
+  .pillar { padding: 28px 24px; border-top: 2px solid var(--gold); background: rgba(255, 250, 235, 0.4); }
+  .pillar h3 { font-style: italic; color: var(--oxblood); margin-bottom: 8px; }
+  .pillar p { font-size: 0.98rem; margin: 0; }
+  .pillar .roman {
+    display: block; font-family: var(--display);
+    font-size: 0.85rem; letter-spacing: 0.3em;
+    color: var(--gold); margin-bottom: 8px;
+  }
+
+  /* ===== Curriculum overview ===== */
+  .curriculum { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 32px; }
+  .term {
+    background: linear-gradient(180deg, rgba(255,250,235,0.5), rgba(217,195,136,0.12));
+    border: 1px solid var(--rule-soft);
+    padding: 32px;
+    position: relative;
+  }
+  .term::before {
+    content: ""; position: absolute;
+    top: 8px; left: 8px; right: 8px; bottom: 8px;
+    border: 1px solid var(--rule-soft);
+    pointer-events: none;
+  }
+  .term h2 { font-style: italic; font-weight: 500; margin-bottom: 4px; }
+  .term .term-roman {
+    font-family: var(--display); letter-spacing: 0.4em;
+    color: var(--gold); font-size: 0.9rem; margin-bottom: 18px;
+  }
+  .term ol { list-style: none; padding: 0; margin: 0; counter-reset: lesson; }
+  .term ol li {
+    counter-increment: lesson;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 14px;
+    padding: 14px 0;
+    border-top: 1px solid var(--rule-soft);
+    align-items: baseline;
+  }
+  .term ol li:first-child { border-top: 1px solid var(--rule); }
+  .term ol li::before {
+    content: counter(lesson, upper-roman) ".";
+    font-family: var(--display); color: var(--gold);
+    font-size: 0.95rem; font-weight: 600;
+  }
+  .term .lesson-title { font-family: var(--display); font-size: 1.2rem; color: var(--forest-deep); }
+  .term .lesson-title small {
+    display: block; font-family: var(--body);
+    font-style: italic; font-size: 0.92rem;
+    color: var(--ink-soft); margin-top: 2px; letter-spacing: 0;
+  }
+  .term .lesson-link {
+    font-family: var(--display); font-size: 0.85rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--oxblood); border: none; align-self: center;
+  }
+
+  /* ===== Quote / motto ===== */
+  .motto-block {
+    text-align: center;
+    padding: 64px 0;
+    margin: 48px 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(31, 58, 46, 0.04) 50%, transparent 100%);
+    border-top: 1px double var(--rule-soft);
+    border-bottom: 1px double var(--rule-soft);
+  }
+  .motto {
+    font-family: var(--display); font-style: italic;
+    font-size: 2.2rem; color: var(--forest-deep);
+    max-width: 760px; margin: 0 auto 18px; line-height: 1.25;
+  }
+  .motto-attr {
+    font-family: var(--body); font-style: italic;
+    color: var(--ink-soft); letter-spacing: 0.15em;
+    font-size: 0.85rem; text-transform: uppercase;
+  }
+
+  /* ===== How it works ===== */
+  .howitworks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 24px; }
+  .step { text-align: center; padding: 24px 16px; }
+  .step .num {
+    font-family: var(--display); font-size: 3.4rem;
+    font-style: italic; color: var(--oxblood);
+    line-height: 1; display: block; margin-bottom: 10px;
+  }
+  .step h4 { color: var(--forest-deep); letter-spacing: 0.1em; font-size: 0.95rem; }
+  .step p { font-size: 0.95rem; color: var(--ink-soft); margin: 0; }
+
+  /* ===== Featured / Spotlight ===== */
+  .spotlight {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 48px;
+    align-items: center;
+    padding: 48px 0;
+    margin-top: 32px;
+    border-top: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .spotlight-img {
+    border: 8px solid var(--parchment-2);
+    outline: 1px solid var(--rule);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+  .spotlight-img img { display: block; width: 100%; height: auto; }
+  .spotlight h2 { font-style: italic; }
+
+  /* ===== Final CTA banner ===== */
+  .enroll-banner {
+    background: var(--forest-deep);
+    color: var(--parchment);
+    padding: 48px;
+    margin: 48px 0 0;
+    text-align: center;
+    position: relative;
+    border: 1px solid var(--ink);
+  }
+  .enroll-banner::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 1px solid var(--gold);
+    pointer-events: none;
+  }
+  .enroll-banner h2 { color: var(--parchment); font-style: italic; margin-bottom: 8px; }
+  .enroll-banner p { color: rgba(243, 230, 196, 0.78); max-width: 56ch; margin: 0 auto 20px; }
+  .enroll-banner .btn { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+  .enroll-banner .btn:hover { background: var(--gold-light); border-color: var(--gold-light); color: var(--ink); }
+
+  @media (max-width: 880px) {
+    .hero, .curriculum, .spotlight { grid-template-columns: 1fr; gap: 32px; }
+    .pillars, .howitworks { grid-template-columns: 1fr 1fr; }
+    .nav { display: none; }
+  }
+</style>
