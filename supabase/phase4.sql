@@ -29,7 +29,10 @@ alter table public.invite_tokens
   add column if not exists notes text;
 
 -- Update the headmaster admin view so the table shows the note column.
-create or replace view public.invite_tokens_admin as
+-- DROP-then-CREATE rather than CREATE OR REPLACE, because Postgres
+-- forbids inserting a column into the middle of an existing view.
+drop view if exists public.invite_tokens_admin;
+create view public.invite_tokens_admin as
   select
     token,
     role,
