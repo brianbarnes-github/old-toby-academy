@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import CsrfField from '../components/CsrfField.astro';
 
 export const prerender = false;
 
@@ -68,6 +69,7 @@ const initial = (profile.character_name ?? '?').slice(0, 1).toUpperCase();
         <h2>Avatar</h2>
         <p class="muted italic">PNG, JPEG, WEBP, or GIF. Up to 2 MB. Replaces any current avatar.</p>
         <form class="auth-form" method="POST" action="/api/account/upload-avatar" enctype="multipart/form-data">
+          <CsrfField />
           <label>Pick an image
             <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp,image/gif" required />
           </label>
@@ -85,6 +87,7 @@ const initial = (profile.character_name ?? '?').slice(0, 1).toUpperCase();
         <h2>Change password</h2>
         <p class="muted italic">At least 6 characters. We verify your current password before changing.</p>
         <form class="auth-form" method="POST" action="/api/account/change-password">
+          <CsrfField />
           <label>Current password
             <input type="password" name="current_password" required autocomplete="current-password" />
           </label>
@@ -104,6 +107,7 @@ const initial = (profile.character_name ?? '?').slice(0, 1).toUpperCase();
       <h2>About you</h2>
       <p class="muted italic">A short bio appears on your member page. Keep it under 500 characters.</p>
       <form class="auth-form" method="POST" action="/api/account/update-info">
+        <CsrfField />
         <label>Server (optional)
           <input type="text" name="server" value={profile.server ?? ''} placeholder="e.g. Sting" />
         </label>
@@ -119,6 +123,7 @@ const initial = (profile.character_name ?? '?').slice(0, 1).toUpperCase();
       <h2>Experience profile</h2>
       <p class="muted italic">Update your answers to the welcome questions.</p>
       <form class="auth-form welcome-profile-form" method="POST" action="/api/account/update-profile">
+        <CsrfField />
         {[
           { name: 'music_level',        label: 'Music experience (general)' },
           { name: 'ingame_music_level', label: 'In-game music experience' },

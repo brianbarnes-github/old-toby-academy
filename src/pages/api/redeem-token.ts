@@ -1,8 +1,12 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '../../lib/supabase/server';
 import { characterNameToEmail, slugifyName } from '../../lib/auth';
+import { verifyCsrf } from '../../lib/csrf';
+import { getClientIp } from '../../lib/request';
 
 export const prerender = false;
+
+const RATE_LIMIT = 5; // attempts per minute per IP
 
 function fail(redirect: any, message: string, fields: Record<string, string>): Response {
   const params = new URLSearchParams({ error: message, ...fields });
@@ -11,12 +15,28 @@ function fail(redirect: any, message: string, fields: Record<string, string>): R
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const formData = await request.formData();
+
+  if (!verifyCsrf(formData, cookies)) {
+    return new Response('Session expired. Refresh the page and try again.', { status: 403 });
+  }
+
   const token = String(formData.get('token') ?? '').trim();
   const character = String(formData.get('character') ?? '').trim();
   const password = String(formData.get('password') ?? '');
   const server = String(formData.get('server') ?? '').trim() || null;
 
   const fields = { token, character };
+
+  // Rate limit
+  const supabase = createSupabaseServerClient(cookies, request.headers);
+  const ip = getClientIp(request);
+  const { data: attemptCount } = await supabase.rpc('record_rate_limit', {
+    p_ip: ip,
+    p_endpoint: '/api/redeem-token',
+  });
+  if (typeof attemptCount === 'number' && attemptCount > RATE_LIMIT) {
+    return fail(redirect, 'Too many attempts. Please wait a minute and try again.', fields);
+  }
 
   if (!token || !character || !password) {
     return fail(redirect, 'All required fields must be filled.', fields);
@@ -27,8 +47,6 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   if (!slugifyName(character)) {
     return fail(redirect, 'Character name must contain letters or digits.', fields);
   }
-
-  const supabase = createSupabaseServerClient(cookies, request.headers);
 
   // 1) Token must be valid (unused, not expired).
   const { data: tokenOk, error: tokenErr } = await supabase.rpc('is_token_valid', { p_token: token });
@@ -41,13 +59,11 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   if (!nameOk) return fail(redirect, 'That character name is already in the Hall. Pick another.', fields);
 
   // 3) Sign up using a synthetic email derived from the character name.
-  //    No real email is collected or shown; this just satisfies Supabase Auth.
   const email = characterNameToEmail(character);
   const { error: signUpErr } = await supabase.auth.signUp({ email, password });
   if (signUpErr) return fail(redirect, signUpErr.message, fields);
 
-  // 4) Atomically mark the token used and set the new profile's role +
-  //    character + server. Runs as the just-created user.
+  // 4) Atomically mark the token used and set the new profile's role.
   const { error: redeemErr } = await supabase.rpc('redeem_token', {
     p_token: token,
     p_character: character,
@@ -55,8 +71,6 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   });
   if (redeemErr) return fail(redirect, `Could not redeem token: ${redeemErr.message}`, fields);
 
-  // New members go through /welcome (rules → profile → splash) before
-  // reaching the curriculum. Middleware also enforces this.
   return redirect('/welcome');
 };
 

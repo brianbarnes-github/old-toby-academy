@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import CsrfField from '../../components/CsrfField.astro';
 
 export const prerender = false;
 
@@ -56,6 +57,7 @@ const newTokenLink = newToken ? `${origin}/signup?token=${newToken}` : null;
     <div class="admin-section">
       <h2>Generate a new token</h2>
       <form class="token-form" method="POST" action="/api/generate-token">
+        <CsrfField />
         <label>Role
           <select name="role" required>
             <option value="student" selected>Student</option>
@@ -104,6 +106,7 @@ const newTokenLink = newToken ? `${origin}/signup?token=${newToken}` : null;
                   <button type="button" class="row-action copy-btn" data-copy={`${origin}/signup?token=${t.token}`} title="Copy signup link">Link</button>
                   {t.status === 'active' && (
                     <form method="POST" action="/api/revoke-token" class="revoke-form" onsubmit="return confirm('Revoke this token? It cannot be undone — the recipient will not be able to redeem it.');">
+                      <CsrfField />
                       <input type="hidden" name="token" value={t.token} />
                       <button type="submit" class="row-action row-action-danger" title="Revoke token">Revoke</button>
                     </form>

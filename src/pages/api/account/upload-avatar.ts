@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '../../../lib/supabase/server';
+import { verifyCsrf } from '../../../lib/csrf';
 
 export const prerender = false;
 
@@ -21,6 +22,10 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
     formData = await request.formData();
   } catch {
     return redirect('/account?error=' + encodeURIComponent('Could not read upload.'));
+  }
+
+  if (!verifyCsrf(formData, cookies)) {
+    return new Response('Session expired. Refresh the page and try again.', { status: 403 });
   }
 
   const file = formData.get('avatar');
