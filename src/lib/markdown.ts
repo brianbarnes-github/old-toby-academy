@@ -56,3 +56,38 @@ function rewriteTaskCheckboxes(html: string): string {
     },
   );
 }
+
+/**
+ * Quiz shortcode helpers. Authors mount a quiz inline by writing
+ *   [[quiz: my-slug]]
+ * anywhere in the body. The shortcode survives marked.parse() unchanged
+ * because the brackets don't form valid markdown link syntax. The
+ * class viewer page replaces each shortcode with the server-rendered
+ * quiz markup at SSR time.
+ */
+
+const QUIZ_SLUG_BODY = '([a-z0-9][a-z0-9-]{0,63})';
+
+export function containsQuizShortcodes(html: string): boolean {
+  return new RegExp(`\\[\\[quiz:\\s*${QUIZ_SLUG_BODY}\\s*\\]\\]`).test(html);
+}
+
+export function listQuizShortcodes(html: string): string[] {
+  const slugs: string[] = [];
+  const re = new RegExp(`\\[\\[quiz:\\s*${QUIZ_SLUG_BODY}\\s*\\]\\]`, 'g');
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    slugs.push(m[1]);
+  }
+  return slugs;
+}
+
+export function replaceQuizShortcodes(
+  html: string,
+  resolver: (slug: string) => string,
+): string {
+  return html.replace(
+    new RegExp(`\\[\\[quiz:\\s*${QUIZ_SLUG_BODY}\\s*\\]\\]`, 'g'),
+    (_, slug) => resolver(slug),
+  );
+}

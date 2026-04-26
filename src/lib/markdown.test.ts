@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { renderMarkdown, containsTasks } from './markdown';
+import {
+  renderMarkdown,
+  containsTasks,
+  containsQuizShortcodes,
+  listQuizShortcodes,
+  replaceQuizShortcodes,
+} from './markdown';
 
 describe('renderMarkdown', () => {
   it('renders headings, paragraphs, and lists', () => {
@@ -58,5 +64,42 @@ describe('containsTasks', () => {
   it('returns false on prose-only HTML', () => {
     const html = renderMarkdown('# heading\n\nbody');
     expect(containsTasks(html)).toBe(false);
+  });
+});
+
+describe('quiz shortcodes', () => {
+  it('detects [[quiz: slug]] shortcodes after rendering', () => {
+    const html = renderMarkdown('Pre-prose.\n\n[[quiz: relative-minors]]\n\nPost-prose.');
+    expect(containsQuizShortcodes(html)).toBe(true);
+    expect(listQuizShortcodes(html)).toEqual(['relative-minors']);
+  });
+
+  it('lists multiple shortcodes in document order', () => {
+    const html = renderMarkdown('[[quiz: one]]\n\nbody\n\n[[quiz: two]]\n\n[[quiz: three]]');
+    expect(listQuizShortcodes(html)).toEqual(['one', 'two', 'three']);
+  });
+
+  it('returns empty / false when there are no shortcodes', () => {
+    const html = renderMarkdown('# Just prose');
+    expect(containsQuizShortcodes(html)).toBe(false);
+    expect(listQuizShortcodes(html)).toEqual([]);
+  });
+
+  it('tolerates whitespace inside the shortcode', () => {
+    const html = renderMarkdown('[[quiz:   spaced   ]]');
+    expect(listQuizShortcodes(html)).toEqual(['spaced']);
+  });
+
+  it('rejects invalid slugs', () => {
+    // Uppercase, leading dash, and underscores are not valid slugs.
+    const html = renderMarkdown('[[quiz: Bad_Slug]] [[quiz: -leading]] [[quiz: ok-one]]');
+    expect(listQuizShortcodes(html)).toEqual(['ok-one']);
+  });
+
+  it('replaces shortcodes via a resolver', () => {
+    const html = renderMarkdown('Before\n\n[[quiz: foo]]\n\nAfter');
+    const out = replaceQuizShortcodes(html, (slug) => `<div class="quiz" data-slug="${slug}"></div>`);
+    expect(out).toContain('<div class="quiz" data-slug="foo"></div>');
+    expect(out).not.toContain('[[quiz:');
   });
 });
