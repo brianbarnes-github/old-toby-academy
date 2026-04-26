@@ -7,7 +7,11 @@ const LEVELS = new Set(['none', 'beginner', 'intermediate', 'advanced', 'expert'
 
 export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => {
   const user = locals.user;
+  const profile = locals.profile;
   if (!user) return redirect('/login');
+
+  // Faculty (and anyone non-student) doesn't get asked the "hopes" question.
+  const requireHopes = profile?.role === 'student';
 
   const formData = await request.formData();
   const musicLevel = String(formData.get('music_level') ?? '').trim();
@@ -15,28 +19,29 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
   const technicalLevel = String(formData.get('technical_level') ?? '').trim();
   const hopes = String(formData.get('hopes') ?? '').trim();
 
-  // All four are required.
   const missing: string[] = [];
   if (!LEVELS.has(musicLevel))     missing.push('music_level');
   if (!LEVELS.has(ingameLevel))    missing.push('ingame_music_level');
   if (!LEVELS.has(technicalLevel)) missing.push('technical_level');
-  if (!hopes)                      missing.push('hopes');
+  if (requireHopes && !hopes)      missing.push('hopes');
 
   if (missing.length > 0) {
     const msg = `Please answer every question (${missing.length} missing).`;
     return redirect('/welcome?step=2&error=' + encodeURIComponent(msg));
   }
 
-  const supabase = createSupabaseServerClient(cookies, request.headers);
+  const updates: Record<string, string | null> = {
+    music_level: musicLevel,
+    ingame_music_level: ingameLevel,
+    technical_level: technicalLevel,
+  };
+  // Only persist hopes if the form actually sent it (students), else leave whatever's there.
+  if (hopes) updates.hopes = hopes;
 
+  const supabase = createSupabaseServerClient(cookies, request.headers);
   const { error } = await supabase
     .from('profiles')
-    .update({
-      music_level: musicLevel,
-      ingame_music_level: ingameLevel,
-      technical_level: technicalLevel,
-      hopes,
-    })
+    .update(updates)
     .eq('user_id', user.id);
 
   if (error) {
@@ -46,9 +51,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
   await supabase.from('entries').insert({
     user_id: user.id,
     event_type: 'profile_updated',
-    details: {
-      fields_changed: ['music_level', 'ingame_music_level', 'technical_level', 'hopes'],
-    },
+    details: { fields_changed: Object.keys(updates) },
   });
 
   return redirect('/welcome?step=3');

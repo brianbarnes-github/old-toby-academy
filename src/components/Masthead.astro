@@ -10,6 +10,8 @@ const user = Astro.locals?.user ?? null;
 const profile = Astro.locals?.profile ?? null;
 const role = profile?.role ?? null;
 const displayName = profile?.character_name || user?.email?.split('@')[0] || null;
+const avatarUrl = profile?.avatar_url ?? null;
+const initial = (displayName ?? '?').slice(0, 1).toUpperCase();
 
 // Show "Admin" link to anyone with at least one admin-area permission.
 const ADMIN_AREAS = new Set(['admin', 'tokens', 'users', 'roles', 'audit']);
@@ -48,7 +50,12 @@ for (const slug of permissions) {
       {hasAdminAccess && <a href="/admin">Admin</a>}
       {user ? (
         <a href="/account" class="user-pill" data-role={role ?? 'student'} title="My account">
-          {displayName}<span class="user-role">· {role ?? '—'}</span>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" class="user-avatar" />
+          ) : (
+            <span class={`user-avatar user-avatar-default user-avatar-${role ?? 'student'}`}>{initial}</span>
+          )}
+          <span class="user-pill-text">{displayName}<span class="user-role">· {role ?? '—'}</span></span>
         </a>
         <form method="POST" action="/api/logout" class="logout-form">
           <button type="submit" class="logout-btn" title="Sign out">Sign out</button>
@@ -72,8 +79,30 @@ for (const slug of permissions) {
     padding-bottom: 2px;
     border-left: 1px solid var(--rule-soft);
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
+  .nav .user-pill .user-pill-text { display: inline-flex; align-items: baseline; gap: 4px; }
   .nav .user-pill:hover { border-bottom-color: var(--gold); }
+
+  .nav .user-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--gold);
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .nav .user-avatar-default { background: var(--forest); color: var(--gold); }
+  .nav .user-avatar-default.user-avatar-headmaster { background: var(--oxblood); border-color: var(--oxblood); color: var(--gold); }
+  .nav .user-avatar-default.user-avatar-faculty    { background: #8a6e1d; border-color: #8a6e1d; color: var(--parchment); }
+  .nav .user-avatar-default.user-avatar-student    { background: var(--forest); border-color: #466928; color: var(--gold); }
   .nav .user-pill[data-role="faculty"] { color: #8a6e1d; }
   .nav .user-pill[data-role="headmaster"] { color: var(--oxblood); font-weight: 600; }
   .nav .user-role {

@@ -41,6 +41,9 @@ export interface Profile {
   ingame_music_level: ExperienceLevel | null;
   technical_level: ExperienceLevel | null;
   hopes: string | null;
+  // Phase 10: avatar + bio
+  avatar_url: string | null;
+  bio: string | null;
   // Pre-Phase-6 columns, kept for backward compatibility (no longer collected)
   instrument: string | null;
   why_joining: string | null;
