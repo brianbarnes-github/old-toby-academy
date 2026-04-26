@@ -14,6 +14,18 @@ const { data: tokens, error: listErr } = await supabase
   .from('invite_tokens_admin')
   .select('*');
 
+// Roles available as token targets. Headmaster can mint a token
+// granting any role they want — system or custom. We hide
+// 'headmaster' from the dropdown by default; if you really want to
+// give someone full admin power, use SQL or the user-management UI.
+const { data: rolesRaw } = await supabase
+  .from('roles')
+  .select('slug, name, is_system')
+  .order('is_system', { ascending: false })
+  .order('name');
+
+const availableRoles = (rolesRaw ?? []).filter((r: any) => r.slug !== 'headmaster');
+
 const origin = Astro.url.origin;
 const newTokenLink = newToken ? `${origin}/signup?token=${newToken}` : null;
 ---
@@ -60,8 +72,11 @@ const newTokenLink = newToken ? `${origin}/signup?token=${newToken}` : null;
         <CsrfField />
         <label>Role
           <select name="role" required>
-            <option value="student" selected>Student</option>
-            <option value="faculty">Faculty</option>
+            {availableRoles.map((r: any) => (
+              <option value={r.slug} selected={r.slug === 'student'}>
+                {r.name}{r.is_system ? '' : ' · custom'}
+              </option>
+            ))}
           </select>
         </label>
         <label>Expires after (days)
