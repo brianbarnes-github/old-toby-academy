@@ -1,470 +1,24 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ABC Notation 101 · Old Toby Academy</title>
-  <meta name="description" content="The fundamentals of ABC notation — letters and ledger lines, dynamics, timing — with a live editor, audio playback, and a 15-question quiz." />
-  <link rel="icon" type="image/svg+xml" href="crest.svg" />
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <!-- abcjs for staff rendering & playback -->
-  <script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
-  <style>
-    /* ===== Layout: sidebar + reader ===== */
-    .lesson-layout {
-      display: grid;
-      grid-template-columns: 240px 1fr;
-      gap: 56px;
-      padding: 32px 0 80px;
-    }
-    .sidebar-toc {
-      position: sticky;
-      top: 24px;
-      align-self: start;
-      font-size: 0.92rem;
-      max-height: calc(100vh - 48px);
-      overflow-y: auto;
-      padding-right: 8px;
-    }
-    .sidebar-toc .eyebrow { margin-bottom: 14px; }
-    .toc-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      border-left: 1px solid var(--rule-soft);
-    }
-    .toc-list li { padding: 0; }
-    .toc-list a {
-      display: block;
-      padding: 8px 14px;
-      color: var(--ink-soft);
-      border: none;
-      border-left: 2px solid transparent;
-      margin-left: -1px;
-      font-family: var(--display);
-      font-size: 1rem;
-      letter-spacing: 0.02em;
-    }
-    .toc-list a:hover, .toc-list a.active {
-      color: var(--oxblood);
-      border-left-color: var(--oxblood);
-      background: rgba(168,132,58,0.08);
-    }
-    .toc-list .num {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--gold);
-      letter-spacing: 0.15em;
-      margin-right: 8px;
-    }
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
 
-    .reader { max-width: 760px; }
+<BaseLayout
+  title="ABC Notation 101 · Old Toby Academy"
+  description="The fundamentals of ABC notation — letters and ledger lines, dynamics, timing — with a live editor, audio playback, and a 15-question quiz."
+  activeNav="courses"
+  footerVariant="short"
+>
+  <Fragment slot="head">
+    <!-- abcjs for staff rendering & playback -->
+    <script is:inline src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
+  </Fragment>
 
-    .lesson-head {
-      border-bottom: 1px double var(--rule);
-      padding-bottom: 28px;
-      margin-bottom: 32px;
-    }
-    .lesson-head .course-code-line {
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      letter-spacing: 0.2em;
-      color: var(--gold);
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .lesson-head h1 {
-      font-style: italic;
-      font-weight: 500;
-      margin-bottom: 12px;
-    }
-    .lesson-head h1 strong { font-style: normal; font-weight: 700; display: block; font-size: 1.2em; }
-    .lesson-meta {
-      display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
-      font-size: 0.9rem;
-      color: var(--ink-soft);
-      font-style: italic;
-      margin-top: 14px;
-    }
-    .lesson-meta strong {
-      font-style: normal;
-      color: var(--ink);
-      letter-spacing: 0.05em;
-      font-family: var(--display);
-      font-weight: 600;
-    }
-
-    /* ===== Section ===== */
-    section.lesson-section {
-      padding: 32px 0;
-      scroll-margin-top: 24px;
-    }
-    section.lesson-section + section.lesson-section { border-top: 1px solid var(--rule-soft); }
-    .section-num {
-      font-family: var(--display);
-      font-style: italic;
-      color: var(--gold);
-      font-size: 1.1rem;
-      letter-spacing: 0.2em;
-    }
-    section.lesson-section h2 {
-      font-style: italic;
-      font-weight: 500;
-      margin-top: 4px;
-    }
-
-    /* ===== Definition list ===== */
-    .deflist {
-      display: grid;
-      grid-template-columns: max-content 1fr;
-      gap: 12px 24px;
-      margin: 16px 0;
-      font-size: 0.98rem;
-    }
-    .deflist dt {
-      font-family: var(--mono);
-      font-size: 0.88rem;
-      color: var(--oxblood);
-      padding-top: 2px;
-    }
-    .deflist dd { margin: 0; color: var(--ink); }
-
-    /* ===== Notation viewer ===== */
-    .staff-card {
-      background: #fdfaf0;
-      border: 1px solid var(--rule);
-      box-shadow: 0 0 0 6px var(--parchment), 0 0 0 7px var(--rule-soft);
-      padding: 24px 28px;
-      margin: 24px 0;
-    }
-    .staff-card .staff-label {
-      font-family: var(--display);
-      font-style: italic;
-      color: var(--ink-soft);
-      font-size: 0.95rem;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
-    .staff-card .staff-label .lbl {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.2em;
-      color: var(--gold);
-      text-transform: uppercase;
-    }
-    .staff-render { min-height: 110px; }
-    .staff-render svg { max-width: 100%; height: auto; }
-    .staff-controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-      align-items: center;
-    }
-    .play-btn {
-      font-family: var(--display);
-      font-size: 0.85rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      padding: 8px 16px;
-      border: 1px solid var(--ink);
-      background: var(--ink);
-      color: var(--parchment);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .play-btn:hover { background: var(--forest-deep); border-color: var(--forest-deep); }
-    .play-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .play-status {
-      font-style: italic;
-      font-size: 0.88rem;
-      color: var(--ink-soft);
-    }
-
-    /* ===== Inline editor ===== */
-    .editor-card {
-      background: var(--ink);
-      border: 1px solid var(--ink);
-      box-shadow: 0 0 0 6px var(--parchment), 0 0 0 7px var(--rule);
-      margin: 24px 0;
-    }
-    .editor-toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 18px;
-      background: #0f0a04;
-      border-bottom: 1px solid #2c2218;
-      color: #c9a14e;
-      font-family: var(--display);
-      letter-spacing: 0.15em;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-    }
-    .editor-toolbar .ed-actions { display: flex; gap: 8px; }
-    .ed-btn {
-      font-family: var(--display);
-      font-size: 0.78rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 5px 12px;
-      border: 1px solid #6b5a2e;
-      background: transparent;
-      color: #c9a14e;
-      cursor: pointer;
-    }
-    .ed-btn:hover { background: #c9a14e; color: var(--ink); }
-    .ed-btn.primary { background: var(--gold); color: var(--ink); border-color: var(--gold); }
-    .ed-btn.primary:hover { background: var(--gold-light); border-color: var(--gold-light); }
-    textarea.editor {
-      width: 100%;
-      min-height: 220px;
-      background: var(--ink);
-      color: #ddd0a8;
-      border: none;
-      padding: 18px 22px;
-      font-family: var(--mono);
-      font-size: 0.92rem;
-      line-height: 1.7;
-      resize: vertical;
-      outline: none;
-      tab-size: 2;
-    }
-    textarea.editor:focus { background: #14100a; }
-    .editor-output {
-      background: #fdfaf0;
-      padding: 24px 28px;
-      border-top: 1px solid var(--rule);
-      min-height: 140px;
-    }
-    .editor-output .out-label {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.2em;
-      color: var(--oxblood);
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-    }
-    .editor-output .err {
-      font-family: var(--mono);
-      font-size: 0.85rem;
-      color: var(--oxblood-deep);
-      background: rgba(107, 31, 26, 0.07);
-      padding: 8px 12px;
-      border-left: 2px solid var(--oxblood);
-    }
-
-    /* ===== Tables: dynamics, headers ===== */
-    .nice-table th { background: rgba(31, 58, 46, 0.06); }
-    .nice-table td.mono { font-family: var(--mono); font-size: 0.85rem; color: var(--oxblood); }
-
-    /* ===== Quiz ===== */
-    .quiz-card {
-      background: linear-gradient(180deg, rgba(31, 58, 46, 0.04), rgba(168, 132, 58, 0.06));
-      border: 1px solid var(--rule);
-      box-shadow: 0 0 0 6px var(--parchment), 0 0 0 7px var(--rule-soft);
-      padding: 32px 36px;
-      margin: 32px 0;
-    }
-    .quiz-card h3 {
-      font-style: italic;
-      font-weight: 500;
-      font-size: 1.6rem;
-      margin-bottom: 8px;
-    }
-    .quiz-meta {
-      font-style: italic;
-      color: var(--ink-soft);
-      margin-bottom: 24px;
-    }
-    .quiz-q {
-      padding: 18px 0;
-      border-top: 1px solid var(--rule-soft);
-    }
-    .quiz-q:first-of-type { border-top: 1px solid var(--rule); }
-    .quiz-q .q-num {
-      font-family: var(--display);
-      color: var(--gold);
-      font-size: 0.95rem;
-      letter-spacing: 0.2em;
-      font-weight: 600;
-    }
-    .quiz-q .q-text {
-      font-family: var(--display);
-      font-size: 1.15rem;
-      color: var(--forest-deep);
-      margin: 4px 0 12px;
-    }
-    .quiz-q textarea {
-      width: 100%;
-      background: rgba(255, 250, 235, 0.6);
-      border: 1px solid var(--rule-soft);
-      padding: 10px 14px;
-      font-family: var(--body);
-      font-size: 1rem;
-      color: var(--ink);
-      min-height: 60px;
-      resize: vertical;
-      outline: none;
-    }
-    .quiz-q textarea:focus { border-color: var(--gold); background: rgba(255, 250, 235, 0.9); }
-    .quiz-q .reveal {
-      margin-top: 10px;
-      font-family: var(--display);
-      font-size: 0.85rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--oxblood);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px 0;
-    }
-    .quiz-q .reveal:hover { color: var(--oxblood-deep); }
-    .quiz-q .answer {
-      display: none;
-      margin-top: 10px;
-      padding: 12px 16px;
-      background: rgba(31, 58, 46, 0.06);
-      border-left: 2px solid var(--forest-deep);
-      font-style: italic;
-      color: var(--forest-deep);
-      font-size: 0.98rem;
-    }
-    .quiz-q.revealed .answer { display: block; }
-
-    /* ===== Exercise list ===== */
-    .checkbox-list { list-style: none; padding: 0; margin: 16px 0; }
-    .checkbox-list li {
-      padding: 10px 0 10px 36px;
-      position: relative;
-      border-bottom: 1px dotted var(--rule-soft);
-      cursor: pointer;
-      user-select: none;
-    }
-    .checkbox-list li::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 12px;
-      width: 22px;
-      height: 22px;
-      border: 1px solid var(--rule);
-      background: rgba(255, 250, 235, 0.5);
-    }
-    .checkbox-list li.done::before {
-      content: "✓";
-      color: var(--gold);
-      font-family: var(--display);
-      font-weight: 700;
-      text-align: center;
-      line-height: 22px;
-      background: rgba(168, 132, 58, 0.15);
-      border-color: var(--gold);
-    }
-    .checkbox-list li.done { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--rule); }
-
-    /* ===== Progress bar at top ===== */
-    .progress-rail {
-      position: sticky;
-      top: 0;
-      height: 3px;
-      background: var(--rule-soft);
-      z-index: 10;
-    }
-    .progress-fill {
-      height: 100%;
-      background: var(--oxblood);
-      width: 0%;
-      transition: width 0.2s;
-    }
-
-    /* ===== Lesson nav (next/prev) ===== */
-    .lesson-nav {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 32px 0;
-      margin-top: 32px;
-      border-top: 1px double var(--rule);
-    }
-    .lesson-nav a {
-      flex: 1;
-      padding: 18px 24px;
-      border: 1px solid var(--rule-soft);
-      background: rgba(255, 250, 235, 0.4);
-      text-align: left;
-      transition: all 0.2s;
-    }
-    .lesson-nav a:hover { background: rgba(255, 250, 235, 0.8); border-color: var(--gold); }
-    .lesson-nav a.next { text-align: right; }
-    .lesson-nav .nav-label {
-      display: block;
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      letter-spacing: 0.2em;
-      color: var(--gold);
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    .lesson-nav .nav-title {
-      font-family: var(--display);
-      font-size: 1.2rem;
-      color: var(--forest-deep);
-      font-style: italic;
-    }
-
-    @media (max-width: 1000px) {
-      .lesson-layout { grid-template-columns: 1fr; }
-      .sidebar-toc { position: static; max-height: none; }
-      .nav { display: none; }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="progress-rail"><div class="progress-fill" id="progressFill"></div></div>
-
-  <header class="masthead">
-    <div class="masthead-inner">
-      <a class="crest" href="index.html">
-        <svg class="crest-mark" viewBox="0 0 100 100" aria-hidden="true">
-          <path d="M50 6 L88 16 L88 46 C88 66 72 84 50 94 C28 84 12 66 12 46 L12 16 Z" fill="#1f3a2e" stroke="#a8843a" stroke-width="2"/>
-          <g fill="#c9a14e" stroke="none">
-            <ellipse cx="42" cy="60" rx="6" ry="5" transform="rotate(-20 42 60)"/>
-            <rect x="46" y="34" width="2" height="22"/>
-            <path d="M48 34 Q 58 36 58 46 Q 56 40 48 40 Z"/>
-            <ellipse cx="62" cy="64" rx="6" ry="5" transform="rotate(-20 62 64)"/>
-            <rect x="66" y="38" width="2" height="22"/>
-          </g>
-          <path d="M48 34 L66 38" stroke="#c9a14e" stroke-width="2" fill="none"/>
-        </svg>
-        <div class="crest-text">
-          <span class="crest-name">OLD TOBY ACADEMY</span>
-          <span class="crest-sub">— a school of music for the realm —</span>
-        </div>
-      </a>
-      <nav class="nav">
-        <a href="index.html">Home</a>
-        <a href="courses.html" class="active">Courses</a>
-        <a href="faculty.html">Faculty</a>
-        <a href="alumni.html">Alumni Hall</a>
-      </nav>
-    </div>
-  </header>
+  <div slot="body-top" class="progress-rail"><div class="progress-fill" id="progressFill"></div></div>
 
   <main class="page">
     <div class="crumbs">
-      <a href="index.html">Home</a><span>›</span>
-      <a href="courses.html">Courses</a><span>›</span>
+      <a href="/">Home</a><span>›</span>
+      <a href="/courses">Courses</a><span>›</span>
       <em>ABC Notation 101</em>
     </div>
 
@@ -575,12 +129,12 @@ K: C maj</pre>
 
           <h3>The full range</h3>
 
-          <div class="staff-card" data-abc="X:1
+          <div class="staff-card" data-abc={`X:1
 T:The Range
 M:4/4
 L:1/4
 K:C
-C, D, E, F, | G, A, B, C | D E F G | A B c d | e f g a | b c'4 |">
+C, D, E, F, | G, A, B, C | D E F G | A B c d | e f g a | b c'4 |`}>
             <div class="staff-label"><span>From low C, to high c&prime; — every note named.</span><span class="lbl">Staff · I</span></div>
             <div class="staff-render"></div>
             <div class="staff-controls">
@@ -614,12 +168,12 @@ C, D, E, F, | G, A, B, C | D E F G | A B c d | e f g a | b c'4 |">
 
           <h3>A small example</h3>
 
-          <div class="staff-card" data-abc="X:1
+          <div class="staff-card" data-abc={`X:1
 T:A Small Example
 M:4/4
 L:1/4
 K:C
-C2 D2 | [CEG]2 G2 | A B c2 | G4 ||">
+C2 D2 | [CEG]2 G2 | A B c2 | G4 ||`}>
             <div class="staff-label"><span>Two whole notes, a chord and a tied finish.</span><span class="lbl">Staff · II</span></div>
             <div class="staff-render"></div>
             <div class="staff-controls">
@@ -666,12 +220,12 @@ C2 D2 | [CEG]2 G2 | A B c2 | G4 ||">
 
           <h3>Worked example</h3>
 
-          <div class="staff-card" data-abc='X:1
+          <div class="staff-card" data-abc={`X:1
 T:Simple Melody
 M:4/4
 L:1/4
 K:C
-"^mf"C/2 D/2 E F2 | G2- G/2 A2 | G4- G2 E2 | D2- D2 z4 |'>
+"^mf"C/2 D/2 E F2 | G2- G/2 A2 | G4- G2 E2 | D2- D2 z4 |`}>
             <div class="staff-label"><span>The example from the textbook, set to staff.</span><span class="lbl">Staff · III</span></div>
             <div class="staff-render"></div>
             <div class="staff-controls">
@@ -878,11 +432,11 @@ K:C
 
         <!-- LESSON NAV -->
         <nav class="lesson-nav">
-          <a href="courses.html" class="prev">
+          <a href="/courses" class="prev">
             <span class="nav-label">← Catalogue</span>
             <span class="nav-title">Course of Study</span>
           </a>
-          <a href="courses.html#midi-101" class="next">
+          <a href="/courses#midi-101" class="next">
             <span class="nav-label">Next · II →</span>
             <span class="nav-title">MIDI 101</span>
           </a>
@@ -891,101 +445,97 @@ K:C
       </article>
     </div>
   </main>
+</BaseLayout>
 
-  <footer class="footer">
-    <span class="ornament">❦</span> Old Toby Academy <span class="ornament">·</span> ABC Notation 101 <span class="ornament">❦</span>
-  </footer>
-
-  <script>
-    // ---------- Render all data-abc staves ----------
-    function renderAll() {
-      document.querySelectorAll('.staff-card').forEach((card, i) => {
-        const abc = card.getAttribute('data-abc');
-        const target = card.querySelector('.staff-render');
-        target.id = target.id || ('staff-' + i);
-        try {
-          const v = ABCJS.renderAbc(target, abc, {
-            responsive: 'resize',
-            staffwidth: 640,
-            paddingtop: 4,
-            paddingbottom: 4,
-            paddingleft: 0,
-            paddingright: 0,
-            foregroundColor: '#1a140c',
-          });
-          card._visualObj = v[0];
-        } catch (e) {
-          target.innerHTML = '<div class="err" style="font-family:var(--mono);color:var(--oxblood);">Could not render: ' + e.message + '</div>';
-        }
-      });
-    }
-
-    // ---------- Audio playback for staff cards ----------
-    let synthCache = new WeakMap();
-    async function playCard(card) {
-      const visualObj = card._visualObj;
-      const status = card.querySelector('.play-status');
-      const btn = card.querySelector('.play-btn');
-      if (!visualObj) { status.textContent = 'Nothing to play.'; return; }
-      btn.disabled = true;
-      status.textContent = 'tuning…';
+<script is:inline>
+  // ---------- Render all data-abc staves ----------
+  function renderAll() {
+    document.querySelectorAll('.staff-card').forEach((card, i) => {
+      const abc = card.getAttribute('data-abc');
+      const target = card.querySelector('.staff-render');
+      target.id = target.id || ('staff-' + i);
       try {
-        if (!ABCJS.synth.supportsAudio()) {
-          status.textContent = 'Your browser does not support playback.';
-          btn.disabled = false; return;
-        }
-        const synth = new ABCJS.synth.CreateSynth();
-        await synth.init({ visualObj, options: { soundFontUrl: 'https://paulrosen.github.io/midi-js-soundfonts/abcjs/' } });
-        await synth.prime();
-        synth.start();
-        status.textContent = '♪ playing…';
-        const duration = (visualObj.getTotalTime ? visualObj.getTotalTime() : 4) * 1000;
-        setTimeout(() => { btn.disabled = false; status.textContent = ''; }, duration + 400);
-      } catch (e) {
-        status.textContent = 'Playback failed.';
-        btn.disabled = false;
-      }
-    }
-
-    document.querySelectorAll('.staff-card .play-btn').forEach(btn => {
-      btn.addEventListener('click', () => playCard(btn.closest('.staff-card')));
-    });
-
-    // ---------- Live editor ----------
-    const editor = document.getElementById('editor');
-    const editorStaff = document.getElementById('editorStaff');
-    const editorStatus = document.getElementById('editorStatus');
-    const initial = editor.value;
-
-    let editorVisual = null;
-    function renderEditor() {
-      try {
-        const v = ABCJS.renderAbc(editorStaff, editor.value, {
+        const v = ABCJS.renderAbc(target, abc, {
           responsive: 'resize',
           staffwidth: 640,
-          paddingtop: 6,
-          paddingbottom: 6,
+          paddingtop: 4,
+          paddingbottom: 4,
           paddingleft: 0,
           paddingright: 0,
+          foregroundColor: '#1a140c',
         });
-        editorVisual = v[0];
-        editorStatus.textContent = 'rendered';
+        card._visualObj = v[0];
       } catch (e) {
-        editorStaff.innerHTML = '<div class="err">Could not render: ' + e.message + '</div>';
-        editorStatus.textContent = 'error';
+        target.innerHTML = '<div class="err" style="font-family:var(--mono);color:var(--oxblood);">Could not render: ' + e.message + '</div>';
       }
+    });
+  }
+
+  // ---------- Audio playback for staff cards ----------
+  async function playCard(card) {
+    const visualObj = card._visualObj;
+    const status = card.querySelector('.play-status');
+    const btn = card.querySelector('.play-btn');
+    if (!visualObj) { status.textContent = 'Nothing to play.'; return; }
+    btn.disabled = true;
+    status.textContent = 'tuning…';
+    try {
+      if (!ABCJS.synth.supportsAudio()) {
+        status.textContent = 'Your browser does not support playback.';
+        btn.disabled = false; return;
+      }
+      const synth = new ABCJS.synth.CreateSynth();
+      await synth.init({ visualObj, options: { soundFontUrl: 'https://paulrosen.github.io/midi-js-soundfonts/abcjs/' } });
+      await synth.prime();
+      synth.start();
+      status.textContent = '♪ playing…';
+      const duration = (visualObj.getTotalTime ? visualObj.getTotalTime() : 4) * 1000;
+      setTimeout(() => { btn.disabled = false; status.textContent = ''; }, duration + 400);
+    } catch (e) {
+      status.textContent = 'Playback failed.';
+      btn.disabled = false;
     }
-    editor.addEventListener('input', () => {
-      clearTimeout(editor._t);
-      editor._t = setTimeout(renderEditor, 180);
-    });
+  }
 
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      editor.value = initial; renderEditor();
-    });
+  document.querySelectorAll('.staff-card .play-btn').forEach(btn => {
+    btn.addEventListener('click', () => playCard(btn.closest('.staff-card')));
+  });
 
-    document.getElementById('exNoMatter').addEventListener('click', () => {
-      editor.value = `X: 11
+  // ---------- Live editor ----------
+  const editor = document.getElementById('editor');
+  const editorStaff = document.getElementById('editorStaff');
+  const editorStatus = document.getElementById('editorStatus');
+  const initial = editor.value;
+
+  let editorVisual = null;
+  function renderEditor() {
+    try {
+      const v = ABCJS.renderAbc(editorStaff, editor.value, {
+        responsive: 'resize',
+        staffwidth: 640,
+        paddingtop: 6,
+        paddingbottom: 6,
+        paddingleft: 0,
+        paddingright: 0,
+      });
+      editorVisual = v[0];
+      editorStatus.textContent = 'rendered';
+    } catch (e) {
+      editorStaff.innerHTML = '<div class="err">Could not render: ' + e.message + '</div>';
+      editorStatus.textContent = 'error';
+    }
+  }
+  editor.addEventListener('input', () => {
+    clearTimeout(editor._t);
+    editor._t = setTimeout(renderEditor, 180);
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    editor.value = initial; renderEditor();
+  });
+
+  document.getElementById('exNoMatter').addEventListener('click', () => {
+    editor.value = `X: 11
 T: No Matter What [Lute of Ages]
 M: 2/4
 Q: 116
@@ -995,11 +545,11 @@ K: C maj
 [A,EA] z z [A,-E-A-] [A,EA] [EA] E/^F/A |
 [B,^FBd] z z [B,-F-B-d-] [B,FBd] [FB] [E/A/] [F/B/] [Bd] |
 [D3A3d3^f3] [E,B,EG] [E,B,E] [E,2B,2E2] |`;
-      renderEditor();
-    });
+    renderEditor();
+  });
 
-    document.getElementById('exTwinkle').addEventListener('click', () => {
-      editor.value = `X:1
+  document.getElementById('exTwinkle').addEventListener('click', () => {
+    editor.value = `X:1
 T:Twinkle, Twinkle
 M:4/4
 L:1/4
@@ -1008,76 +558,312 @@ K:C
 +mf+ C C G G | A A G2 | F F E E | D D C2 |
 G G F F | E E D2 | G G F F | E E D2 |
 C C G G | A A G2 | F F E E | D D C2 ||`;
-      renderEditor();
-    });
+    renderEditor();
+  });
 
-    document.getElementById('playEditor').addEventListener('click', async () => {
-      const btn = document.getElementById('playEditor');
-      btn.disabled = true;
-      editorStatus.textContent = 'tuning…';
-      try {
-        if (!editorVisual) renderEditor();
-        if (!ABCJS.synth.supportsAudio()) { editorStatus.textContent = 'No audio support'; btn.disabled = false; return; }
-        const synth = new ABCJS.synth.CreateSynth();
-        await synth.init({ visualObj: editorVisual, options: { soundFontUrl: 'https://paulrosen.github.io/midi-js-soundfonts/abcjs/' } });
-        await synth.prime();
-        synth.start();
-        editorStatus.textContent = '♪ playing…';
-        const duration = (editorVisual.getTotalTime ? editorVisual.getTotalTime() : 4) * 1000;
-        setTimeout(() => { btn.disabled = false; editorStatus.textContent = 'rendered'; }, duration + 400);
-      } catch (e) {
-        editorStatus.textContent = 'Playback failed';
-        btn.disabled = false;
-      }
-    });
-
-    // ---------- Exercise checkboxes (persist) ----------
-    const ex = document.getElementById('exerciseList');
-    const STORAGE = 'oldtoby-abc101-exercise';
-    const saved = JSON.parse(localStorage.getItem(STORAGE) || '[]');
-    [...ex.children].forEach((li, i) => {
-      if (saved.includes(i)) li.classList.add('done');
-      li.addEventListener('click', () => {
-        li.classList.toggle('done');
-        const done = [...ex.children].map((x, j) => x.classList.contains('done') ? j : -1).filter(j => j >= 0);
-        localStorage.setItem(STORAGE, JSON.stringify(done));
-      });
-    });
-
-    // ---------- Quiz reveal ----------
-    document.querySelectorAll('.quiz-q .reveal').forEach(b => {
-      b.addEventListener('click', () => {
-        const q = b.closest('.quiz-q');
-        q.classList.toggle('revealed');
-        b.textContent = q.classList.contains('revealed') ? 'Hide answer ↑' : 'Reveal answer →';
-      });
-    });
-
-    // ---------- Progress bar & TOC active state ----------
-    const progressFill = document.getElementById('progressFill');
-    const tocLinks = [...document.querySelectorAll('.toc-list a')];
-    const sections = tocLinks.map(a => document.querySelector(a.getAttribute('href')));
-
-    function onScroll() {
-      const docH = document.documentElement.scrollHeight - window.innerHeight;
-      const pct = Math.min(100, Math.max(0, (window.scrollY / docH) * 100));
-      progressFill.style.width = pct + '%';
-
-      // Active TOC
-      let active = 0;
-      const y = window.scrollY + 120;
-      sections.forEach((s, i) => { if (s && s.offsetTop <= y) active = i; });
-      tocLinks.forEach((a, i) => a.classList.toggle('active', i === active));
+  document.getElementById('playEditor').addEventListener('click', async () => {
+    const btn = document.getElementById('playEditor');
+    btn.disabled = true;
+    editorStatus.textContent = 'tuning…';
+    try {
+      if (!editorVisual) renderEditor();
+      if (!ABCJS.synth.supportsAudio()) { editorStatus.textContent = 'No audio support'; btn.disabled = false; return; }
+      const synth = new ABCJS.synth.CreateSynth();
+      await synth.init({ visualObj: editorVisual, options: { soundFontUrl: 'https://paulrosen.github.io/midi-js-soundfonts/abcjs/' } });
+      await synth.prime();
+      synth.start();
+      editorStatus.textContent = '♪ playing…';
+      const duration = (editorVisual.getTotalTime ? editorVisual.getTotalTime() : 4) * 1000;
+      setTimeout(() => { btn.disabled = false; editorStatus.textContent = 'rendered'; }, duration + 400);
+    } catch (e) {
+      editorStatus.textContent = 'Playback failed';
+      btn.disabled = false;
     }
-    window.addEventListener('scroll', onScroll, { passive: true });
+  });
 
-    // ---------- Boot ----------
-    window.addEventListener('load', () => {
-      renderAll();
-      renderEditor();
-      onScroll();
+  // ---------- Exercise checkboxes (persist) ----------
+  const ex = document.getElementById('exerciseList');
+  const STORAGE = 'oldtoby-abc101-exercise';
+  const saved = JSON.parse(localStorage.getItem(STORAGE) || '[]');
+  [...ex.children].forEach((li, i) => {
+    if (saved.includes(i)) li.classList.add('done');
+    li.addEventListener('click', () => {
+      li.classList.toggle('done');
+      const done = [...ex.children].map((x, j) => x.classList.contains('done') ? j : -1).filter(j => j >= 0);
+      localStorage.setItem(STORAGE, JSON.stringify(done));
     });
-  </script>
+  });
 
-</body>
-</html>
+  // ---------- Quiz reveal ----------
+  document.querySelectorAll('.quiz-q .reveal').forEach(b => {
+    b.addEventListener('click', () => {
+      const q = b.closest('.quiz-q');
+      q.classList.toggle('revealed');
+      b.textContent = q.classList.contains('revealed') ? 'Hide answer ↑' : 'Reveal answer →';
+    });
+  });
+
+  // ---------- Progress bar & TOC active state ----------
+  const progressFill = document.getElementById('progressFill');
+  const tocLinks = [...document.querySelectorAll('.toc-list a')];
+  const sections = tocLinks.map(a => document.querySelector(a.getAttribute('href')));
+
+  function onScroll() {
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = Math.min(100, Math.max(0, (window.scrollY / docH) * 100));
+    progressFill.style.width = pct + '%';
+
+    // Active TOC
+    let active = 0;
+    const y = window.scrollY + 120;
+    sections.forEach((s, i) => { if (s && s.offsetTop <= y) active = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === active));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // ---------- Boot ----------
+  window.addEventListener('load', () => {
+    renderAll();
+    renderEditor();
+    onScroll();
+  });
+</script>
+
+<style is:global>
+  /* ===== Layout: sidebar + reader ===== */
+  .lesson-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 56px;
+    padding: 32px 0 80px;
+  }
+  .sidebar-toc {
+    position: sticky; top: 24px; align-self: start;
+    font-size: 0.92rem; max-height: calc(100vh - 48px);
+    overflow-y: auto; padding-right: 8px;
+  }
+  .sidebar-toc .eyebrow { margin-bottom: 14px; }
+  .toc-list { list-style: none; padding: 0; margin: 0; border-left: 1px solid var(--rule-soft); }
+  .toc-list li { padding: 0; }
+  .toc-list a {
+    display: block; padding: 8px 14px;
+    color: var(--ink-soft); border: none;
+    border-left: 2px solid transparent;
+    margin-left: -1px;
+    font-family: var(--display); font-size: 1rem; letter-spacing: 0.02em;
+  }
+  .toc-list a:hover, .toc-list a.active {
+    color: var(--oxblood);
+    border-left-color: var(--oxblood);
+    background: rgba(168,132,58,0.08);
+  }
+  .toc-list .num {
+    font-family: var(--mono); font-size: 0.7rem; color: var(--gold);
+    letter-spacing: 0.15em; margin-right: 8px;
+  }
+
+  .reader { max-width: 760px; }
+
+  .lesson-head { border-bottom: 1px double var(--rule); padding-bottom: 28px; margin-bottom: 32px; }
+  .lesson-head .course-code-line {
+    font-family: var(--mono); font-size: 0.78rem;
+    letter-spacing: 0.2em; color: var(--gold);
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .lesson-head h1 { font-style: italic; font-weight: 500; margin-bottom: 12px; }
+  .lesson-head h1 strong { font-style: normal; font-weight: 700; display: block; font-size: 1.2em; }
+  .lesson-meta {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    font-size: 0.9rem; color: var(--ink-soft);
+    font-style: italic; margin-top: 14px;
+  }
+  .lesson-meta strong {
+    font-style: normal; color: var(--ink);
+    letter-spacing: 0.05em; font-family: var(--display); font-weight: 600;
+  }
+
+  section.lesson-section { padding: 32px 0; scroll-margin-top: 24px; }
+  section.lesson-section + section.lesson-section { border-top: 1px solid var(--rule-soft); }
+  .section-num { font-family: var(--display); font-style: italic; color: var(--gold); font-size: 1.1rem; letter-spacing: 0.2em; }
+  section.lesson-section h2 { font-style: italic; font-weight: 500; margin-top: 4px; }
+
+  .deflist {
+    display: grid; grid-template-columns: max-content 1fr;
+    gap: 12px 24px; margin: 16px 0; font-size: 0.98rem;
+  }
+  .deflist dt { font-family: var(--mono); font-size: 0.88rem; color: var(--oxblood); padding-top: 2px; }
+  .deflist dd { margin: 0; color: var(--ink); }
+
+  .staff-card {
+    background: #fdfaf0;
+    border: 1px solid var(--rule);
+    box-shadow: 0 0 0 6px var(--parchment), 0 0 0 7px var(--rule-soft);
+    padding: 24px 28px; margin: 24px 0;
+  }
+  .staff-card .staff-label {
+    font-family: var(--display); font-style: italic;
+    color: var(--ink-soft); font-size: 0.95rem; margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .staff-card .staff-label .lbl {
+    font-family: var(--mono); font-size: 0.72rem;
+    letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase;
+  }
+  .staff-render { min-height: 110px; }
+  .staff-render svg { max-width: 100%; height: auto; }
+  .staff-controls { display: flex; gap: 10px; margin-top: 12px; align-items: center; }
+  .play-btn {
+    font-family: var(--display); font-size: 0.85rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 8px 16px;
+    border: 1px solid var(--ink); background: var(--ink); color: var(--parchment);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .play-btn:hover { background: var(--forest-deep); border-color: var(--forest-deep); }
+  .play-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .play-status { font-style: italic; font-size: 0.88rem; color: var(--ink-soft); }
+
+  .editor-card {
+    background: var(--ink); border: 1px solid var(--ink);
+    box-shadow: 0 0 0 6px var(--parchment), 0 0 0 7px var(--rule);
+    margin: 24px 0;
+  }
+  .editor-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; background: #0f0a04;
+    border-bottom: 1px solid #2c2218;
+    color: #c9a14e; font-family: var(--display);
+    letter-spacing: 0.15em; font-size: 0.85rem; text-transform: uppercase;
+  }
+  .editor-toolbar .ed-actions { display: flex; gap: 8px; }
+  .ed-btn {
+    font-family: var(--display); font-size: 0.78rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 5px 12px;
+    border: 1px solid #6b5a2e; background: transparent; color: #c9a14e; cursor: pointer;
+  }
+  .ed-btn:hover { background: #c9a14e; color: var(--ink); }
+  .ed-btn.primary { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+  .ed-btn.primary:hover { background: var(--gold-light); border-color: var(--gold-light); }
+  textarea.editor {
+    width: 100%; min-height: 220px;
+    background: var(--ink); color: #ddd0a8;
+    border: none; padding: 18px 22px;
+    font-family: var(--mono); font-size: 0.92rem; line-height: 1.7;
+    resize: vertical; outline: none; tab-size: 2;
+  }
+  textarea.editor:focus { background: #14100a; }
+  .editor-output {
+    background: #fdfaf0; padding: 24px 28px;
+    border-top: 1px solid var(--rule); min-height: 140px;
+  }
+  .editor-output .out-label {
+    font-family: var(--mono); font-size: 0.72rem;
+    letter-spacing: 0.2em; color: var(--oxblood);
+    text-transform: uppercase; margin-bottom: 8px;
+    display: flex; justify-content: space-between;
+  }
+  .editor-output .err {
+    font-family: var(--mono); font-size: 0.85rem;
+    color: var(--oxblood-deep); background: rgba(107, 31, 26, 0.07);
+    padding: 8px 12px; border-left: 2px solid var(--oxblood);
+  }
+
+  .nice-table th { background: rgba(31, 58, 46, 0.06); }
+  .nice-table td.mono { font-family: var(--mono); font-size: 0.85rem; color: var(--oxblood); }
+
+  .quiz-card {
+    background: linear-gradient(180deg, rgba(31, 58, 46, 0.04), rgba(168, 132, 58, 0.06));
+    border: 1px solid var(--rule);
+    box-shadow: 0 0 0 6px var(--parchment), 0 0 0 7px var(--rule-soft);
+    padding: 32px 36px; margin: 32px 0;
+  }
+  .quiz-card h3 { font-style: italic; font-weight: 500; font-size: 1.6rem; margin-bottom: 8px; }
+  .quiz-meta { font-style: italic; color: var(--ink-soft); margin-bottom: 24px; }
+  .quiz-q { padding: 18px 0; border-top: 1px solid var(--rule-soft); }
+  .quiz-q:first-of-type { border-top: 1px solid var(--rule); }
+  .quiz-q .q-num {
+    font-family: var(--display); color: var(--gold);
+    font-size: 0.95rem; letter-spacing: 0.2em; font-weight: 600;
+  }
+  .quiz-q .q-text {
+    font-family: var(--display); font-size: 1.15rem;
+    color: var(--forest-deep); margin: 4px 0 12px;
+  }
+  .quiz-q textarea {
+    width: 100%; background: rgba(255, 250, 235, 0.6);
+    border: 1px solid var(--rule-soft); padding: 10px 14px;
+    font-family: var(--body); font-size: 1rem; color: var(--ink);
+    min-height: 60px; resize: vertical; outline: none;
+  }
+  .quiz-q textarea:focus { border-color: var(--gold); background: rgba(255, 250, 235, 0.9); }
+  .quiz-q .reveal {
+    margin-top: 10px; font-family: var(--display); font-size: 0.85rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--oxblood); background: none; border: none;
+    cursor: pointer; padding: 4px 0;
+  }
+  .quiz-q .reveal:hover { color: var(--oxblood-deep); }
+  .quiz-q .answer {
+    display: none; margin-top: 10px; padding: 12px 16px;
+    background: rgba(31, 58, 46, 0.06);
+    border-left: 2px solid var(--forest-deep);
+    font-style: italic; color: var(--forest-deep); font-size: 0.98rem;
+  }
+  .quiz-q.revealed .answer { display: block; }
+
+  .checkbox-list { list-style: none; padding: 0; margin: 16px 0; }
+  .checkbox-list li {
+    padding: 10px 0 10px 36px;
+    position: relative; border-bottom: 1px dotted var(--rule-soft);
+    cursor: pointer; user-select: none;
+  }
+  .checkbox-list li::before {
+    content: ""; position: absolute;
+    left: 0; top: 12px; width: 22px; height: 22px;
+    border: 1px solid var(--rule);
+    background: rgba(255, 250, 235, 0.5);
+  }
+  .checkbox-list li.done::before {
+    content: "✓"; color: var(--gold);
+    font-family: var(--display); font-weight: 700;
+    text-align: center; line-height: 22px;
+    background: rgba(168, 132, 58, 0.15); border-color: var(--gold);
+  }
+  .checkbox-list li.done { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--rule); }
+
+  .progress-rail {
+    position: sticky; top: 0; height: 3px;
+    background: var(--rule-soft); z-index: 10;
+  }
+  .progress-fill {
+    height: 100%; background: var(--oxblood);
+    width: 0%; transition: width 0.2s;
+  }
+
+  .lesson-nav {
+    display: flex; justify-content: space-between; gap: 16px;
+    padding: 32px 0; margin-top: 32px;
+    border-top: 1px double var(--rule);
+  }
+  .lesson-nav a {
+    flex: 1; padding: 18px 24px;
+    border: 1px solid var(--rule-soft);
+    background: rgba(255, 250, 235, 0.4);
+    text-align: left; transition: all 0.2s;
+  }
+  .lesson-nav a:hover { background: rgba(255, 250, 235, 0.8); border-color: var(--gold); }
+  .lesson-nav a.next { text-align: right; }
+  .lesson-nav .nav-label {
+    display: block; font-family: var(--mono); font-size: 0.7rem;
+    letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .lesson-nav .nav-title { font-family: var(--display); font-size: 1.2rem; color: var(--forest-deep); font-style: italic; }
+
+  @media (max-width: 1000px) {
+    .lesson-layout { grid-template-columns: 1fr; }
+    .sidebar-toc { position: static; max-height: none; }
+    .nav { display: none; }
+  }
+</style>

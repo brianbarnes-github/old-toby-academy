@@ -1,0 +1,53 @@
+---
+import '../styles/global.css';
+import Masthead from '../components/Masthead.astro';
+import Footer from '../components/Footer.astro';
+
+type NavKey = 'home' | 'courses' | 'faculty' | 'alumni' | null;
+interface Props {
+  title: string;
+  description?: string;
+  activeNav?: NavKey;
+  ogImage?: string;
+  footerVariant?: 'full' | 'short';
+  /** Optional extra <head> content (page-specific styles, scripts, meta) */
+  showMasthead?: boolean;
+}
+
+const {
+  title,
+  description,
+  activeNav = null,
+  ogImage,
+  footerVariant = 'full',
+  showMasthead = true,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:title" content={title} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/crest.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <slot name="head" />
+  </head>
+  <body>
+    <slot name="body-top" />
+    {showMasthead && <Masthead activeNav={activeNav} />}
+    <slot />
+    <Footer variant={footerVariant} />
+  </body>
+</html>
