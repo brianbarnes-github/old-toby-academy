@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CsrfField from '../../../components/CsrfField.astro';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+const { slug: entrySlug } = Astro.params;
+if (!entrySlug) return Astro.redirect('/library');
+
+const { data: entry } = await supabase
+  .from('library_entries')
+  .select('*')
+  .eq('slug', entrySlug)
+  .maybeSingle();
+
+if (!entry) return Astro.redirect('/library?error=' + encodeURIComponent('Entry not found.'));
+
+const userId = Astro.locals.user?.id;
+const isAuthor = userId !== undefined && entry.created_by === userId;
+const isHeadmaster = Astro.locals.profile?.role === 'headmaster';
+if (!isAuthor && !isHeadmaster) {
+  return new Response("Forbidden — you don't own this entry.", { status: 403 });
+}
+
+const error = Astro.url.searchParams.get('error');
+const ok = Astro.url.searchParams.get('ok');
+
+const publicUrl = supabase.storage.from('library-files').getPublicUrl(entry.file_path).data.publicUrl;
+
+function fmtSize(bytes: number | null): string {
+  if (!bytes) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+---
+
+<BaseLayout
+  title={`Edit ${entry.title} · Library`}
+  description={`Edit Library entry ${entry.title}.`}
+  activeNav="library"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/library">Library</a><span>›</span>
+      <em>{entry.title}</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Contributor</div>
+      <h1>
+        {entry.title}
+        {entry.published_at === null
+          ? <span class="course-status-chip course-status-draft" style="margin-left: 12px; font-size: 0.5em;">draft</span>
+          : <span class="course-status-chip course-status-published" style="margin-left: 12px; font-size: 0.5em;">published</span>}
+      </h1>
+    </div>
+
+    {error && <div class="auth-err">{error}</div>}
+    {ok === 'updated'      && <div class="auth-ok">Saved.</div>}
+    {ok === 'created'      && <div class="auth-ok">Entry created. Set its category and publish below.</div>}
+    {ok === 'published'    && <div class="auth-ok">Published.</div>}
+    {ok === 'unpublished'  && <div class="auth-ok">Unpublished.</div>}
+
+    <div class="course-edit-grid">
+      <form class="auth-form course-form" method="POST" action="/api/library/save" enctype="multipart/form-data">
+        <CsrfField />
+        <input type="hidden" name="entry_id" value={entry.id} />
+        <label>Slug
+          <input type="text" name="slug" required pattern="[a-z0-9][a-z0-9-]*" maxlength="80" value={entry.slug} />
+        </label>
+        <label>Title
+          <input type="text" name="title" required maxlength="120" value={entry.title} />
+        </label>
+        <label>Category
+          <input type="text" name="category" maxlength="80" value={entry.category ?? ''} />
+        </label>
+        <label>Description
+          <textarea name="description" rows="3">{entry.description ?? ''}</textarea>
+        </label>
+        <label>Replace file (optional — leave empty to keep current)
+          <input type="file" name="file" />
+        </label>
+        <button class="btn" type="submit">Save changes</button>
+      </form>
+
+      <aside class="course-edit-side">
+        <div class="course-side-panel">
+          <h3>Current file</h3>
+          <p class="mono small" style="word-break: break-all;">{entry.file_name}</p>
+          <p class="muted small">{fmtSize(entry.file_size)} · {entry.content_type ?? 'unknown type'}</p>
+          <p>
+            <a class="btn btn-ghost" href={publicUrl} download={entry.file_name} target="_blank" rel="noopener noreferrer">Download to test</a>
+          </p>
+        </div>
+
+        <div class="course-side-panel">
+          <h3>Status</h3>
+          <p>
+            {entry.published_at !== null
+              ? <><span class="course-status-chip course-status-published">published</span> {new Date(entry.published_at).toLocaleDateString()}</>
+              : <span class="course-status-chip course-status-draft">draft</span>}
+          </p>
+          <form method="POST" action="/api/library/publish" style="display:inline;">
+            <CsrfField />
+            <input type="hidden" name="entry_id" value={entry.id} />
+            <input type="hidden" name="publish"  value={entry.published_at === null ? 'true' : 'false'} />
+            <button class="btn btn-ghost" type="submit">
+              {entry.published_at === null ? 'Publish' : 'Unpublish'}
+            </button>
+          </form>
+        </div>
+
+        <div class="course-side-panel danger-section">
+          <h3>Delete</h3>
+          <p class="muted italic">Removes the entry and its file. No undo.</p>
+          <form method="POST" action="/api/library/delete" onsubmit="return confirm('Delete this Library entry and its file? This cannot be undone.');">
+            <CsrfField />
+            <input type="hidden" name="entry_id" value={entry.id} />
+            <button class="btn btn-ghost" type="submit" style="border-color: var(--oxblood); color: var(--oxblood);">Delete entry</button>
+          </form>
+        </div>
+      </aside>
+    </div>
+  </main>
+</BaseLayout>

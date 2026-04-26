@@ -30,7 +30,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
     details: {},
   });
 
-  return redirect('/courses');
+  return redirect('/library');
 };
 
 export const GET: APIRoute = async ({ redirect }) => redirect('/welcome?step=3');
