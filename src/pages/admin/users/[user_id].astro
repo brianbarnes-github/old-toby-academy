@@ -52,14 +52,24 @@ const availableRoles = (allRoles ?? []).filter((r: any) => !heldRoleIds.has(r.id
       <em>{profile.character_name ?? '(no name)'}</em>
     </div>
 
-    <div class="page-head">
-      <div class="eyebrow">Headmaster's Study</div>
-      <h1 class:list={[`member-name-${profile.role}`]}>{profile.character_name ?? '(no name)'}</h1>
-      <p class="kicker">
-        {profile.server && <>Server: <strong>{profile.server}</strong> · </>}
-        Joined: <strong>{new Date(profile.created_at).toLocaleDateString()}</strong> ·
-        Onboarded: <strong>{profile.onboarding_completed_at ? new Date(profile.onboarding_completed_at).toLocaleDateString() : 'no'}</strong>
-      </p>
+    <div class="page-head admin-user-head">
+      {profile.avatar_url ? (
+        <img src={profile.avatar_url} alt="" class="admin-user-avatar" />
+      ) : (
+        <div class={`admin-user-avatar admin-user-avatar-default admin-user-avatar-${profile.role}`}>
+          {(profile.character_name ?? '?').slice(0, 1).toUpperCase()}
+        </div>
+      )}
+      <div>
+        <div class="eyebrow">Headmaster's Study</div>
+        <h1 class:list={[`member-name-${profile.role}`]}>{profile.character_name ?? '(no name)'}</h1>
+        <p class="kicker">
+          {profile.server && <>Server: <strong>{profile.server}</strong> · </>}
+          Joined: <strong>{new Date(profile.created_at).toLocaleDateString()}</strong> ·
+          Onboarded: <strong>{profile.onboarding_completed_at ? new Date(profile.onboarding_completed_at).toLocaleDateString() : 'no'}</strong>
+        </p>
+        {profile.bio && <p class="admin-user-bio">{profile.bio}</p>}
+      </div>
     </div>
 
     {error && <div class="auth-err">{error}</div>}
@@ -239,4 +249,32 @@ const availableRoles = (allRoles ?? []).filter((r: any) => !heldRoleIds.has(r.id
     padding-top: 2px;
   }
   .profile-dl dd { margin: 0; }
+
+  .admin-user-head { display: flex; align-items: flex-start; gap: 28px; flex-wrap: wrap; }
+  .admin-user-avatar {
+    width: 96px; height: 96px; border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 0 4px var(--parchment);
+    flex-shrink: 0;
+  }
+  .admin-user-avatar-default {
+    background: var(--forest);
+    color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--display);
+    font-size: 2.4rem;
+    font-weight: 700;
+  }
+  .admin-user-avatar-default.admin-user-avatar-headmaster { background: var(--oxblood); border-color: var(--oxblood); color: var(--gold); }
+  .admin-user-avatar-default.admin-user-avatar-faculty    { background: #8a6e1d; border-color: #8a6e1d; color: var(--parchment); }
+  .admin-user-avatar-default.admin-user-avatar-student    { background: var(--forest); border-color: #466928; color: var(--gold); }
+  .admin-user-bio {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: rgba(31, 58, 46, 0.04);
+    border-left: 3px solid var(--gold);
+    font-style: italic;
+    max-width: 56ch;
+  }
 </style>

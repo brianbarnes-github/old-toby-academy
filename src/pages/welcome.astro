@@ -80,7 +80,9 @@ const characterName = profile.character_name ?? 'scribe';
         <section class="welcome-panel">
           <div class="eyebrow">Step Two · Your Profile</div>
           <h1>Tell the faculty about yourself.</h1>
-          <p class="kicker">All four answers are required so we can place you in the right cohort. You can refine any of them later from your account.</p>
+          <p class="kicker">{profile.role === 'student'
+            ? 'All four answers are required so we can place you in the right cohort. You can refine any of them later from your account.'
+            : 'A few questions to calibrate. You can refine these later from your account.'}</p>
 
           <form method="POST" action="/api/complete-profile" class="auth-form welcome-profile-form">
             {[
@@ -105,9 +107,11 @@ const characterName = profile.character_name ?? 'scribe';
               </fieldset>
             ))}
 
-            <label>What you hope to get from this effort
-              <textarea name="hopes" rows="4" required placeholder="A few sentences on what you want out of the academy.">{profile.hopes ?? ''}</textarea>
-            </label>
+            {profile.role === 'student' && (
+              <label>What you hope to get from this effort
+                <textarea name="hopes" rows="4" required placeholder="A few sentences on what you want out of the academy.">{profile.hopes ?? ''}</textarea>
+              </label>
+            )}
 
             <div class="welcome-actions">
               <button class="btn" type="submit">Save &amp; continue</button>

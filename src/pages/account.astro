@@ -14,7 +14,6 @@ if (!user || !profile) {
 const error = Astro.url.searchParams.get('error');
 const ok = Astro.url.searchParams.get('ok');
 
-// Roles held by the member, for the identity panel
 const { data: memberRoles } = await supabase
   .from('user_roles')
   .select('roles(slug, name)')
@@ -23,6 +22,10 @@ const { data: memberRoles } = await supabase
 const roleSlugs = (memberRoles ?? []).map((r: any) => r.roles?.slug).filter(Boolean);
 
 const LEVELS = ['none', 'beginner', 'intermediate', 'advanced', 'expert'] as const;
+
+// Faculty (and anyone non-student) doesn't get the "hopes" question.
+const isStudent = profile.role === 'student';
+const initial = (profile.character_name ?? '?').slice(0, 1).toUpperCase();
 ---
 
 <BaseLayout
@@ -31,40 +34,56 @@ const LEVELS = ['none', 'beginner', 'intermediate', 'advanced', 'expert'] as con
   footerVariant="short"
 >
   <main class="page">
-    <div class="page-head">
-      <div class="eyebrow">Your Quarters</div>
-      <h1 class:list={[`member-name-${profile.role}`]}>{profile.character_name ?? '(no name)'}</h1>
-      <p class="kicker">
-        {profile.server && <>Server: <strong>{profile.server}</strong> · </>}
-        Joined: <strong>{new Date(profile.created_at).toLocaleDateString()}</strong>
-        {roleSlugs.length > 0 && (
-          <> · Roles: {roleSlugs.map((s: string) => <span class={`role-chip role-chip-${s}`} style="margin-left: 4px;">{s}</span>)}</>
+    <div class="page-head account-head">
+      <div class="account-identity">
+        {profile.avatar_url ? (
+          <img src={profile.avatar_url} alt="" class="account-avatar account-avatar-large" />
+        ) : (
+          <div class={`account-avatar account-avatar-large account-avatar-default account-avatar-${profile.role}`}>{initial}</div>
         )}
-      </p>
+        <div>
+          <div class="eyebrow">Your Quarters</div>
+          <h1 class:list={[`member-name-${profile.role}`]}>{profile.character_name ?? '(no name)'}</h1>
+          <p class="kicker">
+            {profile.server && <>Server: <strong>{profile.server}</strong> · </>}
+            Joined: <strong>{new Date(profile.created_at).toLocaleDateString()}</strong>
+            {roleSlugs.length > 0 && (
+              <> · {roleSlugs.map((s: string) => <span class={`role-chip role-chip-${s}`} style="margin-left: 4px;">{s}</span>)}</>
+            )}
+          </p>
+        </div>
+      </div>
     </div>
 
     {error && <div class="auth-err">{error}</div>}
-    {ok === 'server'   && <div class="auth-ok">Server saved.</div>}
+    {ok === 'info'     && <div class="auth-ok">Saved.</div>}
     {ok === 'password' && <div class="auth-ok">Password changed. Use the new one next time you sign in.</div>}
     {ok === 'profile'  && <div class="auth-ok">Profile updated.</div>}
+    {ok === 'avatar'   && <div class="auth-ok">Avatar saved.</div>}
+    {ok === 'avatar-removed' && <div class="auth-ok">Avatar removed.</div>}
 
     <div class="account-grid">
-      <!-- Server -->
+      <!-- Avatar -->
       <section class="account-section">
-        <h2>Server</h2>
-        <p class="muted italic">Optional. Useful for finding cohort-mates.</p>
-        <form class="auth-form" method="POST" action="/api/account/update-server">
-          <label>Your server
-            <input type="text" name="server" value={profile.server ?? ''} placeholder="e.g. Sting" />
+        <h2>Avatar</h2>
+        <p class="muted italic">PNG, JPEG, WEBP, or GIF. Up to 2 MB. Replaces any current avatar.</p>
+        <form class="auth-form" method="POST" action="/api/account/upload-avatar" enctype="multipart/form-data">
+          <label>Pick an image
+            <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp,image/gif" required />
           </label>
-          <button class="btn" type="submit">Save server</button>
+          <div class="welcome-actions">
+            <button class="btn" type="submit">Upload</button>
+            {profile.avatar_url && (
+              <button class="btn btn-ghost" type="submit" formaction="/api/account/remove-avatar" formenctype="application/x-www-form-urlencoded" formnovalidate>Remove</button>
+            )}
+          </div>
         </form>
       </section>
 
       <!-- Password -->
       <section class="account-section">
         <h2>Change password</h2>
-        <p class="muted italic">Pick something at least 6 characters long. We'll verify your current password before changing.</p>
+        <p class="muted italic">At least 6 characters. We verify your current password before changing.</p>
         <form class="auth-form" method="POST" action="/api/account/change-password">
           <label>Current password
             <input type="password" name="current_password" required autocomplete="current-password" />
@@ -80,10 +99,25 @@ const LEVELS = ['none', 'beginner', 'intermediate', 'advanced', 'expert'] as con
       </section>
     </div>
 
-    <!-- Experience profile (full-width) -->
+    <!-- About: server + bio -->
+    <section class="account-section account-section-wide">
+      <h2>About you</h2>
+      <p class="muted italic">A short bio appears on your member page. Keep it under 500 characters.</p>
+      <form class="auth-form" method="POST" action="/api/account/update-info">
+        <label>Server (optional)
+          <input type="text" name="server" value={profile.server ?? ''} placeholder="e.g. Sting" />
+        </label>
+        <label>Bio
+          <textarea name="bio" rows="4" maxlength="500" placeholder="A few sentences for the faculty.">{profile.bio ?? ''}</textarea>
+        </label>
+        <button class="btn" type="submit">Save</button>
+      </form>
+    </section>
+
+    <!-- Experience profile -->
     <section class="account-section account-section-wide">
       <h2>Experience profile</h2>
-      <p class="muted italic">Update your answers to the welcome questions. Helps the faculty place you with the right cohort.</p>
+      <p class="muted italic">Update your answers to the welcome questions.</p>
       <form class="auth-form welcome-profile-form" method="POST" action="/api/account/update-profile">
         {[
           { name: 'music_level',        label: 'Music experience (general)' },
@@ -107,9 +141,11 @@ const LEVELS = ['none', 'beginner', 'intermediate', 'advanced', 'expert'] as con
           </fieldset>
         ))}
 
-        <label>What you hope to get from this effort
-          <textarea name="hopes" rows="4" required>{profile.hopes ?? ''}</textarea>
-        </label>
+        {isStudent && (
+          <label>What you hope to get from this effort
+            <textarea name="hopes" rows="4" required>{profile.hopes ?? ''}</textarea>
+          </label>
+        )}
 
         <button class="btn" type="submit">Save profile</button>
       </form>
@@ -122,24 +158,49 @@ const LEVELS = ['none', 'beginner', 'intermediate', 'advanced', 'expert'] as con
 </BaseLayout>
 
 <style is:global>
+  .account-head { padding: 56px 0 24px; border-bottom: 1px double var(--rule); margin-bottom: 32px; }
+  .account-identity { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+
+  .account-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 0 4px var(--parchment);
+  }
+  .account-avatar-large { width: 96px; height: 96px; }
+  .account-avatar-default {
+    background: var(--forest);
+    color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--display);
+    font-size: 2.4rem;
+    font-weight: 700;
+  }
+  .account-avatar-headmaster { background: var(--oxblood); border-color: var(--oxblood); color: var(--gold); }
+  .account-avatar-faculty    { background: #8a6e1d; border-color: #8a6e1d; color: var(--parchment); }
+  .account-avatar-student    { background: var(--forest); border-color: #466928; color: var(--gold); }
+
   .account-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    margin-top: 32px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 0;
   }
   .account-section {
     background: linear-gradient(180deg, rgba(255,250,235,0.55), rgba(217,195,136,0.12));
     border: 1px solid var(--rule-soft);
     padding: 28px 32px;
   }
-  .account-section h2 {
-    font-style: italic;
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
+  .account-section h2 { font-style: italic; font-weight: 500; margin-bottom: 4px; }
   .account-section .muted { margin-bottom: 16px; }
   .account-section-wide { margin-top: 32px; }
+
+  .account-section input[type="file"] {
+    font-family: var(--body);
+    padding: 8px 0;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    text-transform: none;
+    letter-spacing: 0;
+  }
 
   .member-name-headmaster { color: var(--oxblood); }
   .member-name-faculty    { color: #8a6e1d; }

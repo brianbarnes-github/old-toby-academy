@@ -7,7 +7,10 @@ const LEVELS = new Set(['none', 'beginner', 'intermediate', 'advanced', 'expert'
 
 export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => {
   const user = locals.user;
+  const profile = locals.profile;
   if (!user) return redirect('/login');
+
+  const requireHopes = profile?.role === 'student';
 
   const formData = await request.formData();
   const musicLevel = String(formData.get('music_level') ?? '').trim();
@@ -19,21 +22,23 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
   if (!LEVELS.has(musicLevel))     missing.push('music_level');
   if (!LEVELS.has(ingameLevel))    missing.push('ingame_music_level');
   if (!LEVELS.has(technicalLevel)) missing.push('technical_level');
-  if (!hopes)                      missing.push('hopes');
+  if (requireHopes && !hopes)      missing.push('hopes');
 
   if (missing.length > 0) {
     return redirect('/account?error=' + encodeURIComponent(`Please answer every question (${missing.length} missing).`));
   }
 
+  const updates: Record<string, string | null> = {
+    music_level: musicLevel,
+    ingame_music_level: ingameLevel,
+    technical_level: technicalLevel,
+  };
+  if (hopes) updates.hopes = hopes;
+
   const supabase = createSupabaseServerClient(cookies, request.headers);
   const { error } = await supabase
     .from('profiles')
-    .update({
-      music_level: musicLevel,
-      ingame_music_level: ingameLevel,
-      technical_level: technicalLevel,
-      hopes,
-    })
+    .update(updates)
     .eq('user_id', user.id);
 
   if (error) {
@@ -43,7 +48,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, locals }) => 
   await supabase.from('entries').insert({
     user_id: user.id,
     event_type: 'profile_updated',
-    details: { fields_changed: ['music_level', 'ingame_music_level', 'technical_level', 'hopes'] },
+    details: { fields_changed: Object.keys(updates) },
   });
 
   return redirect('/account?ok=profile');
