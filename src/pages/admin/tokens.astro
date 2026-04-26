@@ -60,9 +60,12 @@ const origin = Astro.url.origin;
         <label>Expires after (days)
           <input type="number" name="expires_days" value="30" min="0" max="365" />
         </label>
+        <label class="token-form-wide">Recipient note (optional)
+          <input type="text" name="notes" placeholder="e.g. Pippin from Discord" maxlength="120" />
+        </label>
         <button class="btn" type="submit">Mint token</button>
       </form>
-      <p class="muted italic" style="margin-top: 8px;">Set expiry days to <code>0</code> for no expiry.</p>
+      <p class="muted italic" style="margin-top: 8px;">Set expiry days to <code>0</code> for no expiry. The note helps you reconcile who you sent each token to.</p>
     </div>
 
     <div class="admin-section">
@@ -73,9 +76,10 @@ const origin = Astro.url.origin;
         <table class="nice-table token-table">
           <thead>
             <tr>
-              <th style="width:30%;">Token</th>
+              <th style="width:24%;">Token</th>
               <th>Role</th>
               <th>Status</th>
+              <th>Recipient</th>
               <th>Expires</th>
               <th>Created</th>
             </tr>
@@ -86,6 +90,7 @@ const origin = Astro.url.origin;
                 <td class="mono token-cell"><code>{t.token}</code></td>
                 <td>{t.role}</td>
                 <td><span class={`token-status token-status-${t.status}`}>{t.status}</span></td>
+                <td class="token-notes">{t.notes ?? <span class="muted">—</span>}</td>
                 <td>{t.expires_at ? new Date(t.expires_at).toLocaleDateString() : '—'}</td>
                 <td>{new Date(t.created_at).toLocaleDateString()}</td>
               </tr>
@@ -146,6 +151,9 @@ const origin = Astro.url.origin;
   .token-form input:focus, .token-form select:focus {
     outline: none; border-color: var(--gold);
   }
+  .token-form .token-form-wide { flex: 1; min-width: 240px; }
+  .token-form .token-form-wide input { width: 100%; }
+  .token-table .token-notes { font-style: italic; color: var(--ink-soft); }
 
   .token-table { font-size: 0.92rem; }
   .token-table .token-cell { word-break: break-all; }
