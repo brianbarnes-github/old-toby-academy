@@ -36,6 +36,7 @@ const {
     <meta property="og:title" content={title} />
     <meta property="og:type" content="website" />
     <link rel="icon" type="image/svg+xml" href="/crest.svg" />
+    {Astro.locals?.csrfToken && <meta name="csrf-token" content={Astro.locals.csrfToken} />}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

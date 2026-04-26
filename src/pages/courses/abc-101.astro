@@ -2,6 +2,40 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export const prerender = false;
+
+const COURSE_SLUG = 'abc-101';
+
+const exerciseSteps: string[] = [
+  'Find the title of the song.',
+  'Locate the dynamic the instrument is set to.',
+  'Find a change of dynamic somewhere in the piece.',
+  'Find a chord (look for square brackets).',
+  'Play the song in the player above.',
+  'Change the tempo from 116 to 140, observe, then change back.',
+  'Change the meter from 4/4 to 2/4, observe, then change back.',
+  'Comment out the <code>L:</code> line with <code>%</code>, observe, then restore it.',
+  'Change the note length from 1/8 to 1/4, observe, then restore.',
+  'Change the dynamic from <code>+f+</code> to <code>+pp+</code>, observe, then restore.',
+  'Extra credit — identify the chords in the piece by the notes inside the brackets.',
+];
+
+// Fetch the current user's exercise marks for this course so we can
+// pre-tick the boxes server-side. Falls back to empty if no session.
+let completedSteps = new Set<string>();
+const user = Astro.locals.user;
+if (user) {
+  const { data: marks } = await Astro.locals.supabase
+    .from('progress_marks')
+    .select('mark_key, value')
+    .eq('user_id', user.id)
+    .eq('course_slug', COURSE_SLUG)
+    .eq('mark_type', 'exercise');
+  for (const mark of marks ?? []) {
+    if ((mark as any).value?.completed === true) {
+      completedSteps.add((mark as any).mark_key);
+    }
+  }
+}
 ---
 
 <BaseLayout
@@ -285,19 +319,18 @@ K:C
         <section class="lesson-section" id="exercise">
           <span class="section-num">§ VIII.</span>
           <h2>The exercise</h2>
-          <p>Open the <em>No Matter What</em> example in the playground above, then check off each step as you go. Your progress is kept locally so you can return mid-task.</p>
-          <ul class="checkbox-list" id="exerciseList">
-            <li>Find the title of the song.</li>
-            <li>Locate the dynamic the instrument is set to.</li>
-            <li>Find a change of dynamic somewhere in the piece.</li>
-            <li>Find a chord (look for square brackets).</li>
-            <li>Play the song in the player above.</li>
-            <li>Change the tempo from 116 to 140, observe, then change back.</li>
-            <li>Change the meter from 4/4 to 2/4, observe, then change back.</li>
-            <li>Comment out the <code>L:</code> line with <code>%</code>, observe, then restore it.</li>
-            <li>Change the note length from 1/8 to 1/4, observe, then restore.</li>
-            <li>Change the dynamic from <code>+f+</code> to <code>+pp+</code>, observe, then restore.</li>
-            <li>Extra credit — identify the chords in the piece by the notes inside the brackets.</li>
+          <p>Open the <em>No Matter What</em> example in the playground above, then check off each step as you go. Your progress is kept on your account, so it follows you across devices.</p>
+          <ul class="checkbox-list" id="exerciseList" data-course-slug={COURSE_SLUG}>
+            {exerciseSteps.map((label, i) => {
+              const key = `step-${i}`;
+              return (
+                <li
+                  data-mark-key={key}
+                  class:list={[{ done: completedSteps.has(key) }]}
+                  set:html={label}
+                />
+              );
+            })}
           </ul>
         </section>
 
@@ -583,16 +616,36 @@ C C G G | A A G2 | F F E E | D D C2 ||`;
     }
   });
 
-  // ---------- Exercise checkboxes (persist) ----------
+  // ---------- Exercise checkboxes (persist to /api/progress/mark) ----------
+  // Initial done state was rendered server-side from progress_marks.
+  // On click we POST a single mark; failures revert the visual state.
   const ex = document.getElementById('exerciseList');
-  const STORAGE = 'oldtoby-abc101-exercise';
-  const saved = JSON.parse(localStorage.getItem(STORAGE) || '[]');
-  [...ex.children].forEach((li, i) => {
-    if (saved.includes(i)) li.classList.add('done');
-    li.addEventListener('click', () => {
+  const courseSlug = ex.dataset.courseSlug;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
+  async function postMark(markKey, completed) {
+    const fd = new FormData();
+    fd.set('csrf_token', csrfToken);
+    fd.set('course_slug', courseSlug);
+    fd.set('mark_type', 'exercise');
+    fd.set('mark_key', markKey);
+    fd.set('value', JSON.stringify({ completed }));
+    const res = await fetch('/api/progress/mark', { method: 'POST', body: fd });
+    return res.ok;
+  }
+
+  [...ex.children].forEach((li) => {
+    li.addEventListener('click', async () => {
+      const markKey = li.dataset.markKey;
+      if (!markKey) return;
+      const wasDone = li.classList.contains('done');
+      // Optimistic toggle
       li.classList.toggle('done');
-      const done = [...ex.children].map((x, j) => x.classList.contains('done') ? j : -1).filter(j => j >= 0);
-      localStorage.setItem(STORAGE, JSON.stringify(done));
+      const ok = await postMark(markKey, !wasDone);
+      if (!ok) {
+        // Server rejected — revert
+        li.classList.toggle('done');
+      }
     });
   });
 
