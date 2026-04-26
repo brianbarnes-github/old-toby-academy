@@ -30,8 +30,12 @@ const ONBOARDING_ROUTES = new Set<string>([
   '/api/logout',
 ]);
 
-// Routes only headmaster can reach.
-const HEADMASTER_PREFIXES = ['/admin'];
+// Route prefix → permission slug. First match wins. Add new prefixes
+// here as Phase B / future areas grow. The permissions themselves
+// must exist in the public.permissions table (seeded via migration).
+const ROUTE_PERMISSIONS: Array<{ prefix: string; permission: string }> = [
+  { prefix: '/admin', permission: 'admin.access' },
+];
 
 function isPublic(pathname: string): boolean {
   if (PUBLIC_ROUTES.has(pathname)) return true;
@@ -43,8 +47,11 @@ function isPublic(pathname: string): boolean {
   return false;
 }
 
-function requiresHeadmaster(pathname: string): boolean {
-  return HEADMASTER_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'));
+function requiredPermission(pathname: string): string | null {
+  for (const { prefix, permission } of ROUTE_PERMISSIONS) {
+    if (pathname === prefix || pathname.startsWith(prefix + '/')) return permission;
+  }
+  return null;
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -90,9 +97,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return redirect('/welcome');
   }
 
-  // Headmaster-only routes
-  if (requiresHeadmaster(pathname) && profile?.role !== 'headmaster') {
-    return new Response('Forbidden — headmaster only.', { status: 403 });
+  // Permission-gated routes (dynamic RBAC). One RPC per gated request.
+  const required = requiredPermission(pathname);
+  if (required) {
+    const { data: ok, error } = await supabase.rpc('has_permission', { p_slug: required });
+    if (error) {
+      console.error('has_permission RPC failed', error);
+      return new Response('Permission check failed.', { status: 500 });
+    }
+    if (!ok) {
+      return new Response("Forbidden — you don't have access to this area.", { status: 403 });
+    }
   }
 
   return next();
