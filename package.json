@@ -16,7 +16,8 @@
     "@astrojs/netlify": "^5.5.4",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.1",
-    "astro": "^4.16.18"
+    "astro": "^4.16.18",
+    "marked": "^18.0.2"
   },
   "devDependencies": {
     "@vitest/ui": "^1.6.1",

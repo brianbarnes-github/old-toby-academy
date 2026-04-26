@@ -2,257 +2,151 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+const canAuthor = Astro.locals.permissions.has('courses.author');
+
+// RLS handles visibility — authors see their drafts; everyone else
+// sees only published courses.
+const { data: courses, error } = await supabase
+  .from('courses')
+  .select('id, slug, title, summary, order_mode, published_at, created_by, updated_at')
+  .order('updated_at', { ascending: false });
+
+const userId = Astro.locals.user?.id;
+const myCourses = (courses ?? []).filter((c: any) => c.created_by === userId);
+const publishedCourses = (courses ?? []).filter((c: any) => c.published_at !== null);
+const otherDrafts = (courses ?? []).filter((c: any) => c.published_at === null && c.created_by !== userId);
+
+const ok = Astro.url.searchParams.get('ok');
+const error_ = Astro.url.searchParams.get('error');
 ---
 
 <BaseLayout
   title="Courses · Old Toby Academy"
-  description="Eight courses across two terms — ABC notation, MIDI, instruments, and song-making — culminating in a class band concert."
+  description="The academy's curriculum."
   activeNav="courses"
   footerVariant="short"
 >
   <main class="page">
     <div class="page-head">
-      <div class="eyebrow">Catalogue · Spring Term</div>
-      <h1>The Course of Study</h1>
-      <p class="kicker">Eight courses across two terms. Begin with the Basic Term and finish with a recital. Featured course is open and ready to read; others are summarised below.</p>
+      <div class="eyebrow">Catalogue</div>
+      <h1>Courses</h1>
+      <p class="kicker">Read at your own pace, or follow a sequential cohort. New courses are added by the faculty.</p>
+      {canAuthor && (
+        <p style="margin-top: 16px;">
+          <a class="btn" href="/courses/new">+ New course</a>
+        </p>
+      )}
     </div>
 
-    <!-- BASIC TERM -->
-    <div class="term-header">
-      <h2>The Basic Term</h2>
-      <span class="term-meta">Fundamentals · I — IV</span>
-    </div>
+    {ok === 'deleted'       && <div class="auth-ok">Course deleted.</div>}
+    {ok === 'class-deleted' && <div class="auth-ok">Class deleted.</div>}
+    {error_                 && <div class="auth-err">{error_}</div>}
+    {error                  && <div class="auth-err">Could not load courses: {error.message}</div>}
 
-    <div class="course-grid">
+    {canAuthor && myCourses.length > 0 && (
+      <section class="course-section">
+        <h2>Your courses</h2>
+        <div class="course-list">
+          {myCourses.map((c: any) => (
+            <a class="course-card" href={`/courses/${c.slug}/edit`}>
+              <div class="course-card-head">
+                <span class="course-card-title">{c.title}</span>
+                {c.published_at === null && <span class="course-status-chip course-status-draft">draft</span>}
+                {c.published_at !== null && <span class="course-status-chip course-status-published">published</span>}
+                {c.order_mode === 'sequential' && <span class="course-status-chip">sequential</span>}
+              </div>
+              {c.summary && <p class="course-card-summary">{c.summary}</p>}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
 
-      <article class="course featured" id="abc-101">
-        <div class="featured-grid">
-          <div>
-            <div class="course-header">
-              <span class="course-roman">I.</span>
-              <span class="course-code">ABC&nbsp;101</span>
-            </div>
-            <h3>ABC Notation 101</h3>
-            <span class="course-tag">A school for the eye and the ear.</span>
-            <p class="desc-long">ABC notation is a lightweight, human-readable format for writing music in plain text. We learn its anatomy from the headers down — title, time signature, default note length, key — and then walk note by note: letters, octaves, accidentals, ties, chords, dynamics, rests. By the end of this course you will read an <code>.abc</code> file the way a scribe reads a manuscript.</p>
-            <div class="course-foot">
-              <span class="meta-icons gold">⤞ READ · ASK · EXERCISE · QUIZ</span>
-              <a href="/courses/abc-101">Open the Lesson →</a>
-            </div>
-          </div>
-          <div>
-            <div class="eyebrow" style="margin-bottom: 8px;">Syllabus</div>
-            <ul class="syllabus-list">
-              <li><span>Origins of <code>abc</code></span><span class="num">i</span></li>
-              <li><span>Header syntax &amp; metadata</span><span class="num">ii</span></li>
-              <li><span>Note representation</span><span class="num">iii</span></li>
-              <li><span>Octaves &amp; accidentals</span><span class="num">iv</span></li>
-              <li><span>Chords &amp; ties</span><span class="num">v</span></li>
-              <li><span>Dynamics &amp; rests</span><span class="num">vi</span></li>
-              <li><span>Understanding timing</span><span class="num">vii</span></li>
-              <li><span>Exercise &amp; quiz</span><span class="num">viii</span></li>
-            </ul>
-          </div>
+    <section class="course-section">
+      <h2>Published courses</h2>
+      {publishedCourses.length === 0 ? (
+        <p class="muted italic">No published courses yet. {canAuthor && <>Want to <a href="/courses/new">make one</a>?</>}</p>
+      ) : (
+        <div class="course-list">
+          {publishedCourses.map((c: any) => (
+            <a class="course-card" href={`/courses/${c.slug}`}>
+              <div class="course-card-head">
+                <span class="course-card-title">{c.title}</span>
+                {c.order_mode === 'sequential' && <span class="course-status-chip">sequential</span>}
+              </div>
+              {c.summary && <p class="course-card-summary">{c.summary}</p>}
+            </a>
+          ))}
         </div>
-      </article>
-
-      <article class="course" id="midi-101">
-        <div class="course-header">
-          <span class="course-roman">II.</span>
-          <span class="course-code">MIDI&nbsp;101</span>
-        </div>
-        <h3>MIDI 101</h3>
-        <span class="course-tag">The engine of the song.</span>
-        <p>What a MIDI file is, and what it isn't. Header chunks and track chunks; events both musical and meta; the difference between a track and a channel. Knowing the engine is the beginning of knowing why a song misbehaves.</p>
-        <div class="course-foot">
-          <span class="meta">8 readings · 1 quiz · 1 exercise</span>
-          <a href="#">Coming soon</a>
-        </div>
-      </article>
-
-      <article class="course" id="instruments-101">
-        <div class="course-header">
-          <span class="course-roman">III.</span>
-          <span class="course-code">INST&nbsp;101</span>
-        </div>
-        <h3>Instruments 101</h3>
-        <span class="course-tag">Every voice in the choir.</span>
-        <p>A guided tour of every playable instrument: lutes &amp; theorbos, fiddles of seven flavours, harps, bassoons, bagpipes, clarinets, flutes, horns, pibgorns — and the strange particular world of drums, with their many maps and unique nature.</p>
-        <div class="course-foot">
-          <span class="meta">14 instruments · drum-pad lab</span>
-          <a href="#">Coming soon</a>
-        </div>
-      </article>
-
-      <article class="course" id="song-making-101">
-        <div class="course-header">
-          <span class="course-roman">IV.</span>
-          <span class="course-code">SONG&nbsp;101</span>
-        </div>
-        <h3>Song Making 101</h3>
-        <span class="course-tag">From a tune in your head to a file on the page.</span>
-        <p>Building a basic song with the transcribing tool of your choice. Bringing the melody into ink. The essential workflow from blank page to playable <code>.abc</code>.</p>
-        <div class="course-foot">
-          <span class="meta">Workshop · self-paced</span>
-          <a href="#">Coming soon</a>
-        </div>
-      </article>
-    </div>
-
-    <!-- ADVANCED TERM -->
-    <div class="term-header">
-      <h2>The Advanced Term</h2>
-      <span class="term-meta">Mastery · V — VIII</span>
-    </div>
-
-    <div class="course-grid">
-      <article class="course" id="abc-201">
-        <div class="course-header">
-          <span class="course-roman">V.</span>
-          <span class="course-code">ABC&nbsp;201</span>
-        </div>
-        <h3>ABC Notation 201</h3>
-        <span class="course-tag">Fix what the tools cannot.</span>
-        <p>Editing text files in earnest. Troubleshooting a song. Customising notation precisely to your needs — corrections, find-and-replace, well-formed headers, useful comments. The text editor is your luthier's workbench.</p>
-        <div class="course-foot">
-          <span class="meta">Practical skills · two labs</span>
-          <a href="#">Coming soon</a>
-        </div>
-      </article>
-
-      <article class="course" id="midi-201">
-        <div class="course-header">
-          <span class="course-roman">VI.</span>
-          <span class="course-code">MIDI&nbsp;201</span>
-        </div>
-        <h3>MIDI 201</h3>
-        <span class="course-tag">Repair, reshape, refine.</span>
-        <p>Editing and repairing MIDI files in Reaper: deleting, splitting, duplicating, moving, quantising notes; bend-range correction; swing-time conversion; volume adjustment. Every operation a video lab.</p>
-        <div class="course-foot">
-          <span class="meta">8 video labs · 4 lab files</span>
-          <a href="#">Coming soon</a>
-        </div>
-      </article>
-
-      <article class="course" id="instruments-201">
-        <div class="course-header">
-          <span class="course-roman">VII.</span>
-          <span class="course-code">INST&nbsp;201</span>
-        </div>
-        <h3>Instruments 201</h3>
-        <span class="course-tag">Magic at the edges.</span>
-        <p>Advanced techniques for every voice — overcoming the limitations of the system. Octave-spanning, four-octave instruments, sustain technique, the rotary effect, and the small combinations that elevate a song from competent to memorable.</p>
-        <div class="course-foot">
-          <span class="meta">Combos · trouble-spots · examples</span>
-          <a href="#">Coming soon</a>
-        </div>
-      </article>
-
-      <article class="course" id="song-making-201">
-        <div class="course-header">
-          <span class="course-roman">VIII.</span>
-          <span class="course-code">SONG&nbsp;201</span>
-        </div>
-        <h3>Song Making 201</h3>
-        <span class="course-tag">Balance. Test. Repeat.</span>
-        <p>The Four Precepts in practice: never lose the melody; more is not better; find the balance; emphasise the hook. The fifth admonition — <em>separate the drums</em> — saves more songs than any other single change. Culminates in the Final Recital.</p>
-        <div class="course-foot">
-          <span class="meta">Final project · class band</span>
-          <a href="#">Coming soon</a>
-        </div>
-      </article>
-    </div>
-
-    <div class="rule-ornament">✦ ❦ ✦</div>
-
-    <section class="text-center" style="padding: 24px 0 48px;">
-      <h2 style="font-style: italic; font-weight: 500;">Begin where every musician begins.</h2>
-      <p class="kicker" style="max-width: 50ch; margin: 0 auto 22px;">The hero course, ABC 101, is fully open. Read at your own pace; tinker with the live editor; take the quiz when you are ready.</p>
-      <a class="btn" href="/courses/abc-101">Open ABC 101 →</a>
+      )}
     </section>
 
+    {otherDrafts.length > 0 && (
+      <section class="course-section">
+        <h2>Other drafts</h2>
+        <p class="muted italic">As headmaster, you can see drafts authored by others.</p>
+        <div class="course-list">
+          {otherDrafts.map((c: any) => (
+            <a class="course-card" href={`/courses/${c.slug}`}>
+              <div class="course-card-head">
+                <span class="course-card-title">{c.title}</span>
+                <span class="course-status-chip course-status-draft">draft</span>
+              </div>
+              {c.summary && <p class="course-card-summary">{c.summary}</p>}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
   </main>
 </BaseLayout>
 
 <style is:global>
-  .page-head { padding: 56px 0 24px; border-bottom: 1px double var(--rule); margin-bottom: 48px; }
-  .page-head h1 { font-style: italic; font-weight: 500; margin-bottom: 8px; }
-  .page-head .kicker { max-width: 60ch; }
-
-  .term-header {
-    display: flex; align-items: baseline; justify-content: space-between;
-    gap: 16px; margin: 56px 0 20px; padding-bottom: 10px;
-    border-bottom: 1px solid var(--rule);
+  .course-section { margin-top: 48px; }
+  .course-section h2 { font-style: italic; font-weight: 500; margin-bottom: 16px; }
+  .course-list {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
   }
-  .term-header h2 { font-style: italic; margin: 0; font-weight: 500; }
-  .term-header .term-meta {
-    font-family: var(--display); letter-spacing: 0.3em; color: var(--gold);
-    font-size: 0.9rem; text-transform: uppercase;
-  }
-
-  .course-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-  .course {
-    background: rgba(255, 250, 235, 0.4);
+  .course-card {
+    display: block;
+    padding: 24px 28px;
+    background: linear-gradient(180deg, rgba(255,250,235,0.55), rgba(217,195,136,0.18));
     border: 1px solid var(--rule-soft);
-    padding: 28px 30px; position: relative; transition: all 0.2s;
+    text-decoration: none; color: inherit;
+    border-bottom: 1px solid var(--rule-soft);
+    transition: all 0.15s;
   }
-  .course:hover { border-color: var(--gold); background: rgba(255, 250, 235, 0.7); }
-  .course-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
-  .course-roman {
-    font-family: var(--display); color: var(--gold);
-    font-size: 0.85rem; letter-spacing: 0.25em; font-weight: 600;
+  .course-card:hover {
+    border-color: var(--gold);
+    background: linear-gradient(180deg, rgba(255,250,235,0.85), rgba(217,195,136,0.3));
   }
-  .course-code {
-    font-family: var(--mono); font-size: 0.78rem;
-    color: var(--ink-soft); letter-spacing: 0.1em;
+  .course-card-head {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 6px;
   }
-  .course h3 {
-    font-family: var(--display); font-size: 1.7rem; font-weight: 500;
-    margin: 0 0 6px; color: var(--forest-deep);
+  .course-card-title {
+    font-family: var(--display);
+    font-size: 1.4rem;
+    color: var(--forest-deep);
+    font-weight: 600;
   }
-  .course-tag {
-    display: inline-block; font-family: var(--display); font-style: italic;
-    font-size: 0.95rem; color: var(--oxblood); margin-bottom: 14px;
+  .course-card-summary { margin: 0; color: var(--ink-soft); font-size: 0.96rem; }
+  .course-status-chip {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border: 1px solid var(--rule-soft);
+    color: var(--ink-soft);
+    border-radius: 2px;
   }
-  .course p { margin: 0 0 16px; color: var(--ink-soft); font-size: 1rem; }
-  .course-foot {
-    display: flex; align-items: center; justify-content: space-between;
-    padding-top: 14px; border-top: 1px solid var(--rule-soft); font-size: 0.88rem;
-  }
-  .course-foot .meta { font-style: italic; color: var(--ink-soft); }
-  .course-foot .meta-icons { font-family: var(--mono); letter-spacing: 0.1em; font-size: 0.78rem; }
-  .course-foot a {
-    font-family: var(--display); letter-spacing: 0.15em; text-transform: uppercase;
-    font-size: 0.85rem; color: var(--oxblood); border: none; font-weight: 600;
-  }
-  .course-foot a:hover { color: var(--oxblood-deep); }
-
-  .course.featured {
-    grid-column: span 2;
-    background: linear-gradient(180deg, rgba(31, 58, 46, 0.05), rgba(168, 132, 58, 0.08));
-    border: 1px solid var(--rule);
-    box-shadow: 0 0 0 8px var(--parchment), 0 0 0 9px var(--rule-soft);
-    padding: 36px 40px;
-  }
-  .course.featured h3 { font-size: 2.2rem; }
-  .course.featured .featured-grid {
-    display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: end;
-  }
-  .course.featured .desc-long { font-size: 1.05rem; color: var(--ink); line-height: 1.6; }
-  .syllabus-list {
-    font-family: var(--body); font-size: 0.95rem;
-    list-style: none; padding: 0; margin: 0; column-count: 1;
-  }
-  .syllabus-list li {
-    padding: 6px 0; border-bottom: 1px dotted var(--rule-soft);
-    display: flex; justify-content: space-between; gap: 12px;
-  }
-  .syllabus-list li:last-child { border-bottom: none; }
-  .syllabus-list .num { font-family: var(--mono); font-size: 0.78rem; color: var(--gold); }
+  .course-status-chip.course-status-draft     { color: var(--oxblood); border-color: var(--oxblood); background: rgba(107, 31, 26, 0.05); }
+  .course-status-chip.course-status-published { color: #466928; border-color: #466928; background: rgba(70, 105, 40, 0.05); }
 
   @media (max-width: 880px) {
-    .course-grid, .course.featured .featured-grid { grid-template-columns: 1fr; }
-    .course.featured { grid-column: auto; }
-    .nav { display: none; }
+    .course-list { grid-template-columns: 1fr; }
   }
 </style>

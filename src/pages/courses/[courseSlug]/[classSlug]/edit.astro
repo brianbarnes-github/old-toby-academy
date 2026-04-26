@@ -1,0 +1,140 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import CsrfField from '../../../../components/CsrfField.astro';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+const { courseSlug, classSlug } = Astro.params;
+if (!courseSlug || !classSlug) return Astro.redirect('/courses');
+
+const { data: course } = await supabase
+  .from('courses')
+  .select('id, slug, title, created_by')
+  .eq('slug', courseSlug)
+  .maybeSingle();
+
+if (!course) return Astro.redirect('/courses?error=' + encodeURIComponent('Course not found.'));
+
+const { data: cls } = await supabase
+  .from('classes')
+  .select('*')
+  .eq('course_id', course.id)
+  .eq('slug', classSlug)
+  .maybeSingle();
+
+if (!cls) return Astro.redirect(`/courses/${courseSlug}?error=` + encodeURIComponent('Class not found.'));
+
+const userId = Astro.locals.user?.id;
+const isAuthor = userId !== undefined && (cls.created_by === userId || course.created_by === userId);
+const isHeadmaster = Astro.locals.profile?.role === 'headmaster';
+if (!isAuthor && !isHeadmaster) {
+  return new Response("Forbidden — you don't own this class.", { status: 403 });
+}
+
+const error = Astro.url.searchParams.get('error');
+const ok = Astro.url.searchParams.get('ok');
+---
+
+<BaseLayout
+  title={`Edit ${cls.title} · ${course.title}`}
+  description={`Edit class ${cls.title}.`}
+  activeNav="courses"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/courses">Courses</a><span>›</span>
+      <a href={`/courses/${course.slug}`}>{course.title}</a><span>›</span>
+      <a href={`/courses/${course.slug}/${cls.slug}`}>{cls.title}</a><span>›</span>
+      <em>Edit</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Author</div>
+      <h1>Edit class</h1>
+    </div>
+
+    {error && <div class="auth-err">{error}</div>}
+    {ok === 'updated'      && <div class="auth-ok">Saved.</div>}
+    {ok === 'created'      && <div class="auth-ok">Class created.</div>}
+    {ok === 'published'    && <div class="auth-ok">Class published.</div>}
+    {ok === 'unpublished'  && <div class="auth-ok">Class unpublished.</div>}
+    {ok === 'completed'    && <div class="auth-ok">Marked complete. {course.title === undefined ? '' : 'In sequential mode, the next class is now unlocked for students.'}</div>}
+    {ok === 'reopened'     && <div class="auth-ok">Reopened.</div>}
+
+    <div class="course-edit-grid">
+      <form class="auth-form course-form" method="POST" action="/api/courses/classes/save">
+        <CsrfField />
+        <input type="hidden" name="class_id"     value={cls.id} />
+        <input type="hidden" name="course_id"    value={course.id} />
+        <input type="hidden" name="course_slug"  value={course.slug} />
+        <label>Slug
+          <input type="text" name="slug" required pattern="[a-z0-9][a-z0-9-]*" maxlength="64" value={cls.slug} />
+        </label>
+        <label>Title
+          <input type="text" name="title" required maxlength="120" value={cls.title} />
+        </label>
+        <label>Summary
+          <input type="text" name="summary" maxlength="200" value={cls.summary ?? ''} />
+        </label>
+        <label>Order index
+          <input type="number" name="order_index" value={cls.order_index ?? 0} min="0" />
+        </label>
+        <label>Body (markdown)
+          <textarea name="body_md" rows="20">{cls.body_md ?? ''}</textarea>
+        </label>
+        <button class="btn" type="submit">Save changes</button>
+      </form>
+
+      <aside class="course-edit-side">
+        <div class="course-side-panel">
+          <h3>Status</h3>
+          <p>
+            {cls.published_at !== null
+              ? <><span class="course-status-chip course-status-published">published</span></>
+              : <span class="course-status-chip course-status-draft">draft</span>}
+          </p>
+          <form method="POST" action="/api/courses/classes/publish" style="display:inline;">
+            <CsrfField />
+            <input type="hidden" name="class_id"    value={cls.id} />
+            <input type="hidden" name="course_slug" value={course.slug} />
+            <input type="hidden" name="publish"     value={cls.published_at === null ? 'true' : 'false'} />
+            <button class="btn btn-ghost" type="submit">
+              {cls.published_at === null ? 'Publish' : 'Unpublish'}
+            </button>
+          </form>
+        </div>
+
+        <div class="course-side-panel">
+          <h3>Completion</h3>
+          <p class="muted italic" style="font-size: 0.9rem;">In sequential courses, marking a class complete unlocks the next one for everyone.</p>
+          <p>
+            {cls.closed_at !== null
+              ? <><span class="course-status-chip course-status-published">complete</span></>
+              : <span class="course-status-chip">in progress</span>}
+          </p>
+          <form method="POST" action="/api/courses/classes/mark-complete" style="display:inline;">
+            <CsrfField />
+            <input type="hidden" name="class_id"    value={cls.id} />
+            <input type="hidden" name="course_slug" value={course.slug} />
+            <input type="hidden" name="complete"    value={cls.closed_at === null ? 'true' : 'false'} />
+            <button class="btn btn-ghost" type="submit">
+              {cls.closed_at === null ? 'Mark complete' : 'Reopen'}
+            </button>
+          </form>
+        </div>
+
+        <div class="course-side-panel danger-section">
+          <h3>Delete</h3>
+          <form method="POST" action="/api/courses/classes/delete" onsubmit="return confirm('Delete this class? This cannot be undone.');">
+            <CsrfField />
+            <input type="hidden" name="class_id"    value={cls.id} />
+            <input type="hidden" name="course_slug" value={course.slug} />
+            <button class="btn btn-ghost" type="submit" style="border-color: var(--oxblood); color: var(--oxblood);">Delete class</button>
+          </form>
+        </div>
+      </aside>
+    </div>
+  </main>
+</BaseLayout>

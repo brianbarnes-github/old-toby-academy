@@ -1,0 +1,183 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CsrfField from '../../../components/CsrfField.astro';
+import { renderMarkdown } from '../../../lib/markdown';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+const { courseSlug } = Astro.params;
+
+if (!courseSlug) return Astro.redirect('/courses');
+
+const { data: course } = await supabase
+  .from('courses')
+  .select('*')
+  .eq('slug', courseSlug)
+  .maybeSingle();
+
+if (!course) return Astro.redirect('/courses?error=' + encodeURIComponent('Course not found.'));
+
+const userId = Astro.locals.user?.id;
+const isAuthor = userId !== undefined && course.created_by === userId;
+const isHeadmaster = Astro.locals.profile?.role === 'headmaster';
+const canManage = isAuthor || isHeadmaster;
+const canAuthor = Astro.locals.permissions.has('courses.author');
+
+const { data: classes } = await supabase
+  .from('classes')
+  .select('id, slug, title, summary, order_index, published_at, closed_at, created_by')
+  .eq('course_id', course.id)
+  .order('order_index');
+
+// Compute lock state for student view.
+const allClasses = classes ?? [];
+const states = allClasses.map((c: any, i: number) => {
+  if (course.order_mode === 'all') {
+    return { ...c, locked: c.published_at === null };
+  }
+  // sequential
+  if (i === 0) return { ...c, locked: c.published_at === null };
+  const prev = allClasses[i - 1];
+  const unlocked = (prev as any).closed_at !== null && c.published_at !== null;
+  return { ...c, locked: !unlocked };
+});
+
+const error = Astro.url.searchParams.get('error');
+const ok = Astro.url.searchParams.get('ok');
+
+const descriptionHtml = renderMarkdown(course.description ?? '');
+---
+
+<BaseLayout
+  title={`${course.title} · Old Toby Academy`}
+  description={course.summary ?? undefined}
+  activeNav="courses"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/courses">Courses</a><span>›</span>
+      <em>{course.title}</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">{course.order_mode === 'sequential' ? 'Sequential course' : 'Self-paced course'}</div>
+      <h1>
+        {course.title}
+        {course.published_at === null && <span class="course-status-chip course-status-draft" style="margin-left: 12px; font-size: 0.5em;">draft</span>}
+      </h1>
+      {course.summary && <p class="kicker">{course.summary}</p>}
+      {canManage && (
+        <p style="margin-top: 16px;">
+          <a class="btn btn-ghost" href={`/courses/${course.slug}/edit`}>Edit course</a>
+          <a class="btn btn-ghost" href={`/courses/${course.slug}/classes/new`} style="margin-left: 8px;">+ Add class</a>
+        </p>
+      )}
+    </div>
+
+    {error && <div class="auth-err">{error}</div>}
+    {ok === 'created' && <div class="auth-ok">Course created.</div>}
+
+    {course.description && (
+      <section class="course-description" set:html={descriptionHtml} />
+    )}
+
+    <section class="course-section">
+      <h2>Classes</h2>
+      {states.length === 0 ? (
+        <p class="muted italic">No classes yet.{canManage && <> <a href={`/courses/${course.slug}/classes/new`}>Add the first one</a>.</>}</p>
+      ) : (
+        <ol class="class-list">
+          {states.map((c: any, i: number) => {
+            // Students don't see drafts; canManage sees all.
+            if (!canManage && c.published_at === null) return null;
+
+            const showAsLocked = !canManage && c.locked;
+            const isClosed = c.closed_at !== null;
+
+            return (
+              <li class:list={[
+                'class-list-item',
+                { 'class-locked': showAsLocked },
+              ]}>
+                <span class="class-list-num">{i + 1}.</span>
+                <div class="class-list-body">
+                  {showAsLocked ? (
+                    <span class="class-list-title">{c.title}</span>
+                  ) : (
+                    <a class="class-list-title" href={`/courses/${course.slug}/${c.slug}`}>{c.title}</a>
+                  )}
+                  {c.summary && <p class="class-list-summary">{c.summary}</p>}
+                  <div class="class-list-chips">
+                    {showAsLocked && <span class="course-status-chip">🔒 locked</span>}
+                    {c.published_at === null && <span class="course-status-chip course-status-draft">draft</span>}
+                    {isClosed && <span class="course-status-chip course-status-published">complete</span>}
+                  </div>
+                </div>
+                {canManage && (
+                  <a class="row-action" href={`/courses/${course.slug}/${c.slug}/edit`}>Edit</a>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .course-description { margin: 32px 0; max-width: 80ch; }
+  .course-description h2 { font-style: italic; font-weight: 500; margin-top: 32px; }
+  .course-description h3 { font-style: italic; font-weight: 500; margin-top: 24px; }
+  .course-description p { margin-bottom: 1em; }
+  .course-description code {
+    background: rgba(168, 132, 58, 0.18);
+    padding: 1px 6px; border-radius: 2px;
+  }
+  .course-description pre {
+    background: var(--ink); color: #ddd0a8;
+    padding: 18px 22px; border-left: 3px solid var(--gold);
+    overflow-x: auto;
+  }
+  .course-description blockquote {
+    border-left: 3px solid var(--gold);
+    padding-left: 16px; font-style: italic; color: var(--ink-soft);
+  }
+
+  .class-list { list-style: none; padding: 0; margin: 16px 0; }
+  .class-list-item {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 18px 22px;
+    background: rgba(255, 250, 235, 0.4);
+    border: 1px solid var(--rule-soft);
+    margin-bottom: 12px;
+  }
+  .class-list-item.class-locked {
+    opacity: 0.55;
+    background: rgba(255, 250, 235, 0.2);
+  }
+  .class-list-num {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 1.5rem;
+    color: var(--gold);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 32px;
+  }
+  .class-list-body { flex: 1; }
+  .class-list-title {
+    font-family: var(--display);
+    font-size: 1.25rem;
+    color: var(--forest-deep);
+    border: none;
+  }
+  a.class-list-title:hover {
+    color: var(--oxblood);
+    border-bottom: 1px solid var(--gold);
+  }
+  .class-list-summary { margin: 4px 0 8px; color: var(--ink-soft); font-size: 0.96rem; }
+  .class-list-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+</style>

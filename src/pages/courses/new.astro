@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CsrfField from '../../components/CsrfField.astro';
+
+export const prerender = false;
+
+if (!Astro.locals.permissions.has('courses.author')) {
+  return new Response("Forbidden — you don't have access to this area.", { status: 403 });
+}
+
+const error = Astro.url.searchParams.get('error');
+---
+
+<BaseLayout
+  title="New Course · Old Toby Academy"
+  description="Create a new course."
+  activeNav="courses"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/courses">Courses</a><span>›</span>
+      <em>New course</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Author</div>
+      <h1>New course</h1>
+      <p class="kicker">Create the container. You'll add classes inside it next.</p>
+    </div>
+
+    {error && <div class="auth-err">{error}</div>}
+
+    <form class="auth-form course-form" method="POST" action="/api/courses/save">
+      <CsrfField />
+      <label>Slug (URL-friendly id; lowercase, hyphens — e.g. <code>music-theory-101</code>)
+        <input type="text" name="slug" required pattern="[a-z0-9][a-z0-9-]*" maxlength="64" placeholder="my-new-course" />
+      </label>
+      <label>Title
+        <input type="text" name="title" required maxlength="120" placeholder="A title with style" />
+      </label>
+      <label>Summary (one-liner for the catalogue)
+        <input type="text" name="summary" maxlength="200" />
+      </label>
+      <label>Description (markdown — appears on the course page)
+        <textarea name="description" rows="6" placeholder="A few paragraphs about what this course covers."></textarea>
+      </label>
+      <label>Order mode
+        <select name="order_mode" required>
+          <option value="all" selected>All-at-once — classes visible whenever they're published</option>
+          <option value="sequential">Sequential — each class unlocks when faculty marks the previous complete</option>
+        </select>
+      </label>
+      <button class="btn" type="submit">Create course</button>
+    </form>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .course-form input, .course-form textarea, .course-form select {
+    width: 100%;
+  }
+  .course-form textarea { font-family: var(--mono); font-size: 0.92rem; }
+</style>

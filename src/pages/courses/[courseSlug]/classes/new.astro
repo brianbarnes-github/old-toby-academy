@@ -1,0 +1,80 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import CsrfField from '../../../../components/CsrfField.astro';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+const { courseSlug } = Astro.params;
+if (!courseSlug) return Astro.redirect('/courses');
+
+const { data: course } = await supabase
+  .from('courses')
+  .select('id, slug, title, created_by')
+  .eq('slug', courseSlug)
+  .maybeSingle();
+
+if (!course) return Astro.redirect('/courses?error=' + encodeURIComponent('Course not found.'));
+
+const userId = Astro.locals.user?.id;
+const isAuthor = userId !== undefined && course.created_by === userId;
+const isHeadmaster = Astro.locals.profile?.role === 'headmaster';
+if (!isAuthor && !isHeadmaster) {
+  return new Response("Forbidden — you don't own this course.", { status: 403 });
+}
+
+// Suggest a sensible next order_index.
+const { data: existing } = await supabase
+  .from('classes')
+  .select('order_index')
+  .eq('course_id', course.id)
+  .order('order_index', { ascending: false })
+  .limit(1);
+
+const suggestedOrder = ((existing?.[0]?.order_index as number | undefined) ?? -1) + 1;
+const error = Astro.url.searchParams.get('error');
+---
+
+<BaseLayout
+  title={`New class · ${course.title}`}
+  description={`Add a class to ${course.title}.`}
+  activeNav="courses"
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/courses">Courses</a><span>›</span>
+      <a href={`/courses/${course.slug}`}>{course.title}</a><span>›</span>
+      <em>New class</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Author</div>
+      <h1>New class in {course.title}</h1>
+    </div>
+
+    {error && <div class="auth-err">{error}</div>}
+
+    <form class="auth-form course-form" method="POST" action="/api/courses/classes/save">
+      <CsrfField />
+      <input type="hidden" name="course_id"   value={course.id} />
+      <input type="hidden" name="course_slug" value={course.slug} />
+      <label>Slug
+        <input type="text" name="slug" required pattern="[a-z0-9][a-z0-9-]*" maxlength="64" placeholder="intro" />
+      </label>
+      <label>Title
+        <input type="text" name="title" required maxlength="120" placeholder="Class title" />
+      </label>
+      <label>Summary
+        <input type="text" name="summary" maxlength="200" />
+      </label>
+      <label>Order index (lower = earlier in the course)
+        <input type="number" name="order_index" value={suggestedOrder} min="0" />
+      </label>
+      <label>Body (markdown)
+        <textarea name="body_md" rows="14" placeholder="Write the class content. Markdown is supported."></textarea>
+      </label>
+      <button class="btn" type="submit">Create class</button>
+    </form>
+  </main>
+</BaseLayout>
