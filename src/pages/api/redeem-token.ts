@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
 import { createSupabaseServerClient } from '../../lib/supabase/server';
+import { characterNameToEmail, slugifyName } from '../../lib/auth';
 
 export const prerender = false;
 
-function fail(redirect: APIRoute extends infer R ? any : never, message: string, fields: Record<string, string>): Response {
+function fail(redirect: any, message: string, fields: Record<string, string>): Response {
   const params = new URLSearchParams({ error: message, ...fields });
   return redirect(`/signup?${params.toString()}`);
 }
@@ -11,44 +12,50 @@ function fail(redirect: APIRoute extends infer R ? any : never, message: string,
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const formData = await request.formData();
   const token = String(formData.get('token') ?? '').trim();
-  const email = String(formData.get('email') ?? '').trim();
-  const password = String(formData.get('password') ?? '');
   const character = String(formData.get('character') ?? '').trim();
+  const password = String(formData.get('password') ?? '');
   const server = String(formData.get('server') ?? '').trim() || null;
 
-  const fields = { token, email };
+  const fields = { token, character };
 
-  if (!token || !email || !password || !character) {
+  if (!token || !character || !password) {
     return fail(redirect, 'All required fields must be filled.', fields);
   }
   if (password.length < 6) {
     return fail(redirect, 'Password must be at least 6 characters.', fields);
   }
+  if (!slugifyName(character)) {
+    return fail(redirect, 'Character name must contain letters or digits.', fields);
+  }
 
   const supabase = createSupabaseServerClient(cookies, request.headers);
 
-  // 1) Pre-check token without exposing the role to anonymous users.
-  const { data: validData, error: validErr } = await supabase.rpc('is_token_valid', { p_token: token });
-  if (validErr) return fail(redirect, `Token check failed: ${validErr.message}`, fields);
-  if (!validData) return fail(redirect, 'That token is invalid or has expired.', fields);
+  // 1) Token must be valid (unused, not expired).
+  const { data: tokenOk, error: tokenErr } = await supabase.rpc('is_token_valid', { p_token: token });
+  if (tokenErr) return fail(redirect, `Token check failed: ${tokenErr.message}`, fields);
+  if (!tokenOk) return fail(redirect, 'That token is invalid or has expired.', fields);
 
-  // 2) Create the auth user (auto-signs them in via cookie).
+  // 2) Character name must be available (case-insensitive, globally unique).
+  const { data: nameOk, error: nameErr } = await supabase.rpc('is_character_name_available', { p_name: character });
+  if (nameErr) return fail(redirect, `Name check failed: ${nameErr.message}`, fields);
+  if (!nameOk) return fail(redirect, 'That character name is already in the Hall. Pick another.', fields);
+
+  // 3) Sign up using a synthetic email derived from the character name.
+  //    No real email is collected or shown; this just satisfies Supabase Auth.
+  const email = characterNameToEmail(character);
   const { error: signUpErr } = await supabase.auth.signUp({ email, password });
   if (signUpErr) return fail(redirect, signUpErr.message, fields);
 
-  // 3) Redeem the token — atomically marks it used and updates the
-  //    profile's role + character/server. The function runs as the
-  //    just-created user (auth.uid() works because signUp set the cookie).
-  const { data: roleData, error: redeemErr } = await supabase.rpc('redeem_token', {
+  // 4) Atomically mark the token used and set the new profile's role +
+  //    character + server. Runs as the just-created user.
+  const { error: redeemErr } = await supabase.rpc('redeem_token', {
     p_token: token,
     p_character: character,
     p_server: server,
   });
   if (redeemErr) return fail(redirect, `Could not redeem token: ${redeemErr.message}`, fields);
 
-  // 4) Faculty-default land on faculty entrance to reinforce the divide.
-  const dest = roleData === 'faculty' ? '/courses' : '/courses';
-  return redirect(dest);
+  return redirect('/courses');
 };
 
 export const GET: APIRoute = async ({ redirect }) => redirect('/signup');

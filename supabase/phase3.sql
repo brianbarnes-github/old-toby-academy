@@ -2,7 +2,34 @@
 -- Old Toby Academy — Phase 3 migration
 -- Run once in your Supabase project: SQL Editor → paste → RUN.
 -- Additive only — does NOT drop existing tables or data.
+-- Idempotent: re-runs cleanly; replaces functions in place.
 -- ============================================================
+
+-- Character names are the academy's user identifier.
+-- Unique (case-insensitive) when set; null is allowed for the
+-- pre-character-auth headmaster account.
+create unique index if not exists profiles_character_name_unique_ci
+  on public.profiles (lower(character_name))
+  where character_name is not null;
+
+-- Public helper so /signup can check name availability without
+-- exposing the profiles table to anonymous users.
+create or replace function public.is_character_name_available(p_name text)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select not exists (
+    select 1 from public.profiles
+    where character_name is not null
+      and lower(character_name) = lower(p_name)
+  );
+$$;
+
+grant execute on function public.is_character_name_available(text) to anon, authenticated;
+
 
 -- Public function: any authenticated user can ask whether a token
 -- is currently redeemable, without needing read access to the
