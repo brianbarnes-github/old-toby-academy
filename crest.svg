@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5">
+  
+  <path d="M50 6 L88 16 L88 46 C88 66 72 84 50 94 C28 84 12 66 12 46 L12 16 Z" fill="#1f3a2e" stroke="#a8843a" stroke-width="2"></path>
+  <path d="M50 11 L84 20 L84 46 C84 64 70 80 50 89 C30 80 16 64 16 46 L16 20 Z" stroke="#a8843a" fill="none" stroke-width="0.8" opacity="0.6"></path>
+  
+  <g stroke="#c9a14e" fill="none" stroke-width="1.4" stroke-linecap="round">
+    <path d="M32 70 L62 30"></path>
+    <path d="M28 72 Q 30 68 32 70"></path>
+    <path d="M62 30 Q 65 25 68 22 Q 70 28 67 32 Q 65 30 62 30 Z" fill="#c9a14e"></path>
+    
+    <path d="M58 34 L55 31 M55 38 L51 35 M52 42 L47 39 M48 46 L43 43 M44 50 L39 47" stroke-width="0.7"></path>
+  </g>
+  
+  <g fill="#c9a14e" stroke="none">
+    <ellipse cx="62" cy="58" rx="5" ry="4" transform="rotate(-20 62 58)"></ellipse>
+    <rect x="65.5" y="42" width="1.6" height="18"></rect>
+    <path d="M67 42 Q 74 44 73 52 Q 72 47 67 47 Z"></path>
+  </g>
+  
+  <path d="M22 76 L78 76 L74 84 L26 84 Z" fill="#6b1f1a" stroke="#a8843a" stroke-width="1"></path>
+  <text x="50" y="82" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="6" fill="#f3e6c4" letter-spacing="1.5" font-weight="700">EST. SHIRE-RECKONING</text>
+</svg>
