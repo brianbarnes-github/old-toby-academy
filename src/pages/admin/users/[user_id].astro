@@ -117,7 +117,75 @@ const availableRoles = (allRoles ?? []).filter((r: any) => !heldRoleIds.has(r.id
         <dt>Hopes</dt><dd>{profile.hopes ?? <span class="muted">—</span>}</dd>
       </dl>
     </div>
+
+    {Astro.locals.permissions.has('users.reset_password') && (
+      <div class="admin-section">
+        <h2>Reset password</h2>
+        <p class="muted italic">Generates a one-time temporary password for this member. They use it once to sign in, then change it themselves. Headmaster delivers it out-of-band (Discord, in-game).</p>
+
+        <div id="temp-password-banner" class="token-banner" hidden>
+          <div class="eyebrow">New temporary password</div>
+          <p class="token-banner-sub">Copy this — it's shown only once. The member uses it on their next sign-in.</p>
+          <div class="token-display">
+            <code class="token-code" id="temp-password-text">—</code>
+            <button type="button" class="copy-btn" id="temp-password-copy">Copy password</button>
+          </div>
+        </div>
+
+        <form method="POST" action="/api/admin/reset-password" onsubmit="return confirm('Reset this member’s password? Their current password will stop working immediately.');">
+          <input type="hidden" name="user_id" value={user_id} />
+          <input type="hidden" name="back" value={`/admin/users/${user_id}`} />
+          <button class="btn btn-ghost" type="submit" style="border-color: var(--oxblood); color: var(--oxblood);">Reset password</button>
+        </form>
+      </div>
+    )}
   </main>
+
+  <script is:inline>
+    // Read a temporary password from the URL hash (#temp=...) once and
+    // display it in the banner. Then strip the hash from the URL so it
+    // doesn't survive in browser history or sit on a refresh.
+    (function () {
+      const hash = window.location.hash;
+      if (!hash || !hash.startsWith('#temp=')) return;
+
+      const password = decodeURIComponent(hash.slice('#temp='.length));
+      const banner = document.getElementById('temp-password-banner');
+      const text = document.getElementById('temp-password-text');
+      const copy = document.getElementById('temp-password-copy');
+      if (!banner || !text || !copy) return;
+
+      text.textContent = password;
+      copy.dataset.copy = password;
+      banner.hidden = false;
+
+      // Replace the URL with the same path, no hash, no scroll.
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+
+      banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    })();
+
+    // Copy-to-clipboard handler for any [data-copy] / .copy-btn button.
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.copy-btn');
+      if (!btn) return;
+      const text = btn.dataset.copy;
+      if (!text) return;
+      const original = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = 'Copied!';
+        btn.classList.add('copy-btn-ok');
+      } catch (err) {
+        btn.textContent = 'Copy failed';
+        btn.classList.add('copy-btn-err');
+      }
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('copy-btn-ok', 'copy-btn-err');
+      }, 1400);
+    });
+  </script>
 </BaseLayout>
 
 <style is:global>
