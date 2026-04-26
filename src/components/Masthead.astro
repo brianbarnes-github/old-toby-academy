@@ -10,6 +10,14 @@ const user = Astro.locals?.user ?? null;
 const profile = Astro.locals?.profile ?? null;
 const role = profile?.role ?? null;
 const displayName = profile?.character_name || user?.email?.split('@')[0] || null;
+
+// Show "Admin" link to anyone with at least one admin-area permission.
+const ADMIN_AREAS = new Set(['admin', 'tokens', 'users', 'roles', 'audit']);
+const permissions = Astro.locals?.permissions ?? new Set<string>();
+let hasAdminAccess = false;
+for (const slug of permissions) {
+  if (ADMIN_AREAS.has(slug.split('.', 1)[0])) { hasAdminAccess = true; break; }
+}
 ---
 
 <header class="masthead">
@@ -37,7 +45,7 @@ const displayName = profile?.character_name || user?.email?.split('@')[0] || nul
       <a href="/courses" class:list={[{ active: activeNav === 'courses' }]}>Courses</a>
       <a href="/faculty" class:list={[{ active: activeNav === 'faculty' }]}>Faculty</a>
       <a href="/alumni" class:list={[{ active: activeNav === 'alumni' }]}>Alumni Hall</a>
-      {role === 'headmaster' && <a href="/admin">Admin</a>}
+      {hasAdminAccess && <a href="/admin">Admin</a>}
       {user ? (
         <span class="user-pill" data-role={role ?? 'student'}>
           {displayName}<span class="user-role">· {role ?? '—'}</span>
