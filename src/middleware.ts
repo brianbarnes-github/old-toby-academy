@@ -30,28 +30,43 @@ const ONBOARDING_ROUTES = new Set<string>([
   '/api/logout',
 ]);
 
-// Route prefix → permission slug. First match wins. Add new prefixes
-// here as Phase B / future areas grow. The permissions themselves
-// must exist in the public.permissions table (seeded via migration).
-const ROUTE_PERMISSIONS: Array<{ prefix: string; permission: string }> = [
-  { prefix: '/admin', permission: 'admin.access' },
+// Per-route permission requirements. A user passes the check if they
+// hold ANY of the listed permissions. First match wins (more specific
+// prefixes listed first).
+const ROUTE_PERMISSIONS: Array<{ prefix: string; anyOf: string[] }> = [
+  { prefix: '/admin/users',       anyOf: ['users.list', 'users.assign_roles'] },
+  { prefix: '/admin/roles',       anyOf: ['roles.manage'] },
+  { prefix: '/admin/permissions', anyOf: ['roles.manage'] },
+  { prefix: '/admin/tokens',      anyOf: ['tokens.list', 'tokens.mint', 'tokens.revoke'] },
+  { prefix: '/admin/log',         anyOf: ['audit.read'] },
 ];
+
+// Areas considered "admin": a user with any permission in any of these
+// areas can reach the /admin dashboard index.
+const ADMIN_AREAS = new Set(['admin', 'tokens', 'users', 'roles', 'audit']);
 
 function isPublic(pathname: string): boolean {
   if (PUBLIC_ROUTES.has(pathname)) return true;
   if (PUBLIC_API_ROUTES.has(pathname)) return true;
-  // Static-asset and Astro internals
   if (pathname.startsWith('/_')) return true;
   if (pathname.startsWith('/assets/')) return true;
   if (pathname === '/crest.svg' || pathname === '/favicon.ico') return true;
   return false;
 }
 
-function requiredPermission(pathname: string): string | null {
-  for (const { prefix, permission } of ROUTE_PERMISSIONS) {
-    if (pathname === prefix || pathname.startsWith(prefix + '/')) return permission;
+function routeRequirement(pathname: string): string[] | null {
+  for (const { prefix, anyOf } of ROUTE_PERMISSIONS) {
+    if (pathname === prefix || pathname.startsWith(prefix + '/')) return anyOf;
   }
   return null;
+}
+
+function hasAdminAreaPermission(perms: Set<string>): boolean {
+  for (const slug of perms) {
+    const area = slug.split('.', 1)[0];
+    if (ADMIN_AREAS.has(area)) return true;
+  }
+  return false;
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -63,51 +78,61 @@ export const onRequest = defineMiddleware(async (context, next) => {
   } = await supabase.auth.getUser();
 
   let profile: Profile | null = null;
+  let permissions = new Set<string>();
   if (user) {
-    const { data } = await supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
-    profile = (data ?? null) as Profile | null;
+    const [{ data: profileData }, { data: permsData, error: permsErr }] = await Promise.all([
+      supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
+      supabase.from('my_permissions').select('slug'),
+    ]);
+    profile = (profileData ?? null) as Profile | null;
+    if (permsErr) {
+      console.error('my_permissions select failed', permsErr);
+    } else if (Array.isArray(permsData)) {
+      permissions = new Set(
+        permsData
+          .map((row: any) => row?.slug)
+          .filter((slug: any): slug is string => typeof slug === 'string')
+      );
+    }
   }
 
-  // Expose to pages via Astro.locals
   locals.supabase = supabase;
   locals.user = user;
   locals.profile = profile;
+  locals.permissions = permissions;
 
   const pathname = url.pathname.replace(/\/$/, '') || '/';
 
-  // Logged-in user hitting login/signup → bounce to where they should be next
   if (user && (pathname === '/login' || pathname === '/faculty-login' || pathname === '/signup')) {
     return redirect(profile?.rules_accepted_at ? '/courses' : '/welcome');
   }
 
-  // Public routes always pass through
   if (isPublic(pathname)) {
     return next();
   }
 
-  // Anything else requires a session
   if (!user) {
     const next_param = encodeURIComponent(url.pathname + url.search);
     return redirect(`/login?next=${next_param}`);
   }
 
-  // Onboarding gate: a logged-in user who hasn't accepted the rules
-  // can only reach the welcome wizard and its API handlers.
   if (!profile?.rules_accepted_at && !ONBOARDING_ROUTES.has(pathname)) {
     return redirect('/welcome');
   }
 
-  // Permission-gated routes (dynamic RBAC). One RPC per gated request.
-  const required = requiredPermission(pathname);
-  if (required) {
-    const { data: ok, error } = await supabase.rpc('has_permission', { p_slug: required });
-    if (error) {
-      console.error('has_permission RPC failed', error);
-      return new Response('Permission check failed.', { status: 500 });
-    }
-    if (!ok) {
-      return new Response("Forbidden — you don't have access to this area.", { status: 403 });
-    }
+  const forbidden = () =>
+    new Response("Forbidden — you don't have access to this area.", { status: 403 });
+
+  // /admin index — pass if user has any admin-area permission
+  if (pathname === '/admin') {
+    if (!hasAdminAreaPermission(permissions)) return forbidden();
+    return next();
+  }
+
+  // Specific /admin/* routes — pass if user has ANY of the listed perms
+  const required = routeRequirement(pathname);
+  if (required && !required.some((slug) => permissions.has(slug))) {
+    return forbidden();
   }
 
   return next();

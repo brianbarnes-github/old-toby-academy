@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+const error = Astro.url.searchParams.get('error');
+const ok = Astro.url.searchParams.get('ok');
+
+const { data: roles, error: listErr } = await supabase
+  .from('roles_admin')
+  .select('*');
+---
+
+<BaseLayout
+  title="Roles · Admin · Old Toby Academy"
+  description="Manage roles and the abilities they grant."
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/admin">Admin</a><span>›</span>
+      <em>Roles</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Headmaster's Study</div>
+      <h1>Roles</h1>
+      <p class="kicker">Define new roles, edit which abilities each grants, and see how many members hold them. System roles can be re-bundled but not deleted.</p>
+    </div>
+
+    {error && <div class="auth-err">{error}</div>}
+    {ok === 'deleted' && <div class="auth-ok">Role deleted.</div>}
+    {ok === 'created' && <div class="auth-ok">Role created. Add some permissions below.</div>}
+
+    <div class="admin-section">
+      <h2>Create a new role</h2>
+      <form class="auth-form create-role-form" method="POST" action="/api/admin/create-role">
+        <label>Slug (lowercase, hyphens; e.g. <code>concert-conductor</code>)
+          <input type="text" name="slug" required pattern="[a-z0-9][a-z0-9-]*" maxlength="48" />
+        </label>
+        <label>Display name (e.g. <code>Concert Conductor</code>)
+          <input type="text" name="name" required maxlength="80" />
+        </label>
+        <label>Description (optional)
+          <input type="text" name="description" maxlength="200" />
+        </label>
+        <button class="btn" type="submit">Create role</button>
+      </form>
+    </div>
+
+    <div class="admin-section">
+      <h2>All roles</h2>
+      {listErr ? (
+        <p class="auth-err">Could not load roles: {listErr.message}</p>
+      ) : roles && roles.length > 0 ? (
+        <table class="nice-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Slug</th>
+              <th>Members</th>
+              <th>Abilities</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {roles.map((r: any) => (
+              <tr>
+                <td>
+                  <a href={`/admin/roles/${r.id}`} class="member-link">
+                    <span class={`member-name member-name-${r.slug}`}>{r.name}</span>
+                  </a>
+                  {r.is_system && <span class="system-flag" style="margin-left: 8px;">system</span>}
+                </td>
+                <td><code>{r.slug}</code></td>
+                <td>{r.member_count}</td>
+                <td>{r.permission_count}</td>
+                <td class="mono small">{new Date(r.created_at).toLocaleDateString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p class="muted italic">No roles yet.</p>
+      )}
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .create-role-form {
+    padding: 24px;
+    background: rgba(255, 250, 235, 0.4);
+    border: 1px solid var(--rule-soft);
+  }
+  .create-role-form input {
+    width: 100%;
+  }
+  .member-name-headmaster { color: var(--oxblood); }
+  .member-name-faculty    { color: #8a6e1d; }
+  .member-name-student    { color: #466928; }
+</style>

@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+
+const { data: permissions } = await supabase
+  .from('permissions')
+  .select('id, slug, area, action, description, is_system')
+  .order('area')
+  .order('slug');
+
+// For each permission, list which roles grant it.
+const { data: rolePerms } = await supabase
+  .from('role_permissions')
+  .select('permission_id, roles(slug, name)');
+
+const grantsByPerm = new Map<string, Array<{ slug: string; name: string }>>();
+for (const rp of rolePerms ?? []) {
+  if (!grantsByPerm.has(rp.permission_id)) grantsByPerm.set(rp.permission_id, []);
+  if (rp.roles) grantsByPerm.get(rp.permission_id)!.push(rp.roles as any);
+}
+
+// Group by area
+const permsByArea = new Map<string, any[]>();
+for (const p of permissions ?? []) {
+  if (!permsByArea.has(p.area)) permsByArea.set(p.area, []);
+  permsByArea.get(p.area)!.push(p);
+}
+---
+
+<BaseLayout
+  title="Abilities · Admin · Old Toby Academy"
+  description="The catalog of abilities the academy code knows about."
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/admin">Admin</a><span>›</span>
+      <em>Abilities</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Headmaster's Study</div>
+      <h1>Abilities</h1>
+      <p class="kicker">The catalog of abilities the academy code currently checks. New abilities are added by the academy's developer; the headmaster bundles them into roles. Read-only view.</p>
+    </div>
+
+    {[...permsByArea.entries()].map(([area, perms]) => (
+      <section class="admin-section">
+        <h2 style="text-transform: capitalize;">{area}</h2>
+        <table class="nice-table">
+          <thead>
+            <tr>
+              <th style="width:30%;">Slug</th>
+              <th>Description</th>
+              <th>Granted by</th>
+            </tr>
+          </thead>
+          <tbody>
+            {perms.map((p: any) => (
+              <tr>
+                <td><code class="perm-slug">{p.slug}</code></td>
+                <td>{p.description ?? <span class="muted">—</span>}</td>
+                <td>
+                  <div class="role-chips">
+                    {(grantsByPerm.get(p.id) ?? []).map((r) => (
+                      <a href={`/admin/roles?slug=${r.slug}`} class={`role-chip role-chip-${r.slug}`} style="text-decoration: none; border-bottom: none;">{r.slug}</a>
+                    ))}
+                    {(grantsByPerm.get(p.id) ?? []).length === 0 && <span class="muted italic">no role</span>}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    ))}
+  </main>
+</BaseLayout>

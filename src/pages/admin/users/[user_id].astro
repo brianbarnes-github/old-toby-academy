@@ -1,0 +1,174 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+const { user_id } = Astro.params;
+const error = Astro.url.searchParams.get('error');
+const ok = Astro.url.searchParams.get('ok');
+
+if (!user_id) {
+  return Astro.redirect('/admin/users');
+}
+
+const { data: profile, error: profileErr } = await supabase
+  .from('profiles')
+  .select('*')
+  .eq('user_id', user_id)
+  .maybeSingle();
+
+if (profileErr || !profile) {
+  return Astro.redirect('/admin/users?error=' + encodeURIComponent('Member not found.'));
+}
+
+// Roles this member already has
+const { data: memberRoles } = await supabase
+  .from('user_roles')
+  .select('role_id, granted_at, roles(id, slug, name, is_system)')
+  .eq('user_id', user_id);
+
+const heldRoleIds = new Set((memberRoles ?? []).map((mr: any) => mr.role_id));
+
+// All roles in the system
+const { data: allRoles } = await supabase
+  .from('roles')
+  .select('id, slug, name, is_system')
+  .order('is_system', { ascending: false })
+  .order('name');
+
+const availableRoles = (allRoles ?? []).filter((r: any) => !heldRoleIds.has(r.id));
+---
+
+<BaseLayout
+  title={`${profile.character_name ?? 'Member'} · Admin · Old Toby Academy`}
+  description={`Manage roles for ${profile.character_name ?? 'this member'}.`}
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/admin">Admin</a><span>›</span>
+      <a href="/admin/users">Members</a><span>›</span>
+      <em>{profile.character_name ?? '(no name)'}</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Headmaster's Study</div>
+      <h1 class:list={[`member-name-${profile.role}`]}>{profile.character_name ?? '(no name)'}</h1>
+      <p class="kicker">
+        {profile.server && <>Server: <strong>{profile.server}</strong> · </>}
+        Joined: <strong>{new Date(profile.created_at).toLocaleDateString()}</strong> ·
+        Onboarded: <strong>{profile.onboarding_completed_at ? new Date(profile.onboarding_completed_at).toLocaleDateString() : 'no'}</strong>
+      </p>
+    </div>
+
+    {error && <div class="auth-err">{error}</div>}
+    {ok && <div class="auth-ok">Saved.</div>}
+
+    <div class="admin-section">
+      <h2>Roles held</h2>
+      {memberRoles && memberRoles.length > 0 ? (
+        <ul class="role-list">
+          {memberRoles.map((mr: any) => (
+            <li class="role-list-item">
+              <span class={`role-chip role-chip-${mr.roles.slug}`}>{mr.roles.slug}</span>
+              <span class="role-list-name">{mr.roles.name}</span>
+              {mr.roles.is_system && <span class="system-flag">system</span>}
+              <span class="role-list-meta mono small">granted {new Date(mr.granted_at).toLocaleDateString()}</span>
+              <form method="POST" action="/api/admin/revoke-role" class="inline-form" onsubmit="return confirm('Remove this role from the member?');">
+                <input type="hidden" name="user_id" value={user_id} />
+                <input type="hidden" name="role_id" value={mr.roles.id} />
+                <input type="hidden" name="back" value={`/admin/users/${user_id}`} />
+                <button class="row-action row-action-danger" type="submit">Revoke</button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="muted italic">No roles assigned.</p>
+      )}
+    </div>
+
+    {availableRoles.length > 0 && (
+      <div class="admin-section">
+        <h2>Add a role</h2>
+        <form method="POST" action="/api/admin/grant-role" class="grant-role-form">
+          <input type="hidden" name="user_id" value={user_id} />
+          <input type="hidden" name="back" value={`/admin/users/${user_id}`} />
+          <label>Pick a role
+            <select name="role_id" required>
+              <option value="">— select —</option>
+              {availableRoles.map((r: any) => (
+                <option value={r.id}>{r.name} ({r.slug}){r.is_system ? ' · system' : ''}</option>
+              ))}
+            </select>
+          </label>
+          <button class="btn" type="submit">Grant role</button>
+        </form>
+      </div>
+    )}
+
+    <div class="admin-section">
+      <h2>Profile snapshot</h2>
+      <dl class="profile-dl">
+        <dt>Music experience</dt><dd>{profile.music_level ?? <span class="muted">—</span>}</dd>
+        <dt>In-game music experience</dt><dd>{profile.ingame_music_level ?? <span class="muted">—</span>}</dd>
+        <dt>Technical experience</dt><dd>{profile.technical_level ?? <span class="muted">—</span>}</dd>
+        <dt>Hopes</dt><dd>{profile.hopes ?? <span class="muted">—</span>}</dd>
+      </dl>
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .role-list { list-style: none; padding: 0; margin: 0; }
+  .role-list-item {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 12px 0;
+    border-bottom: 1px dotted var(--rule-soft);
+  }
+  .role-list-item:last-child { border-bottom: none; }
+  .role-list-name { font-family: var(--display); font-size: 1.05rem; color: var(--forest-deep); }
+  .role-list-meta { color: var(--ink-soft); }
+  .system-flag {
+    font-family: var(--mono); font-size: 0.7rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid var(--gold);
+    padding: 2px 6px;
+  }
+  .inline-form { margin: 0 0 0 auto; display: inline; }
+
+  .grant-role-form {
+    display: flex; gap: 14px; align-items: flex-end;
+    padding: 18px 22px;
+    background: rgba(255, 250, 235, 0.4);
+    border: 1px solid var(--rule-soft);
+  }
+  .grant-role-form label {
+    flex: 1; min-width: 220px;
+    display: flex; flex-direction: column; gap: 4px;
+    font-family: var(--display); font-size: 0.85rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .grant-role-form select {
+    font-family: var(--body); font-size: 1rem; padding: 8px 12px;
+    background: rgba(255, 250, 235, 0.7);
+    border: 1px solid var(--rule-soft); border-radius: 2px;
+    color: var(--ink); letter-spacing: 0; text-transform: none;
+  }
+
+  .profile-dl {
+    display: grid; grid-template-columns: max-content 1fr;
+    gap: 8px 24px; font-size: 0.95rem;
+  }
+  .profile-dl dt {
+    font-family: var(--display);
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding-top: 2px;
+  }
+  .profile-dl dd { margin: 0; }
+</style>

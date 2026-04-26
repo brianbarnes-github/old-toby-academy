@@ -9,6 +9,8 @@ declare global {
       supabase: SupabaseClient;
       user: User | null;
       profile: Profile | null;
+      /** Set of permission slugs the current user holds (empty if unauthenticated). */
+      permissions: Set<string>;
     }
   }
 }

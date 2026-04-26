@@ -5,18 +5,34 @@ export const prerender = false;
 
 const profile = Astro.locals.profile;
 const supabase = Astro.locals.supabase;
+const perms = Astro.locals.permissions;
 
-const { count: tokenCount } = await supabase
-  .from('invite_tokens')
-  .select('*', { count: 'exact', head: true });
+const has = (slug: string) => perms.has(slug);
+const hasAny = (...slugs: string[]) => slugs.some(has);
 
-const { count: userCount } = await supabase
-  .from('profiles')
-  .select('*', { count: 'exact', head: true });
+const canTokens = hasAny('tokens.list', 'tokens.mint', 'tokens.revoke');
+const canUsers  = hasAny('users.list', 'users.assign_roles');
+const canRoles  = has('roles.manage');
+const canAudit  = has('audit.read');
 
-const { count: entryCount } = await supabase
-  .from('entries')
-  .select('*', { count: 'exact', head: true });
+const counts: Record<string, number | null> = { tokens: null, users: null, entries: null, roles: null };
+
+if (canTokens) {
+  const { count } = await supabase.from('invite_tokens').select('*', { count: 'exact', head: true });
+  counts.tokens = count ?? 0;
+}
+if (canUsers) {
+  const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+  counts.users = count ?? 0;
+}
+if (canAudit) {
+  const { count } = await supabase.from('entries').select('*', { count: 'exact', head: true });
+  counts.entries = count ?? 0;
+}
+if (canRoles) {
+  const { count } = await supabase.from('roles').select('*', { count: 'exact', head: true });
+  counts.roles = count ?? 0;
+}
 ---
 
 <BaseLayout
@@ -32,26 +48,50 @@ const { count: entryCount } = await supabase
     </div>
 
     <div class="admin-grid">
-      <a class="admin-card" href="/admin/tokens">
-        <div class="admin-card-num">{tokenCount ?? 0}</div>
-        <h2>Invite Tokens</h2>
-        <p>Generate new invite tokens, view active and used tokens, and the recipient note for each.</p>
-        <span class="admin-cta">Manage tokens →</span>
-      </a>
+      {canTokens && (
+        <a class="admin-card" href="/admin/tokens">
+          <div class="admin-card-num">{counts.tokens ?? 0}</div>
+          <h2>Invite Tokens</h2>
+          <p>Generate new invite tokens, view active and used tokens, and the recipient note for each.</p>
+          <span class="admin-cta">Manage tokens →</span>
+        </a>
+      )}
 
-      <a class="admin-card" href="/admin/log">
-        <div class="admin-card-num">{entryCount ?? 0}</div>
-        <h2>Audit Log</h2>
-        <p>A timestamped record of every meaningful event — token redemptions, rules acceptance, profile updates.</p>
-        <span class="admin-cta">View log →</span>
-      </a>
+      {canUsers && (
+        <a class="admin-card" href="/admin/users">
+          <div class="admin-card-num">{counts.users ?? 0}</div>
+          <h2>Members</h2>
+          <p>Browse the cohort. Click a member to add or remove roles.</p>
+          <span class="admin-cta">Manage members →</span>
+        </a>
+      )}
 
-      <div class="admin-card admin-card-disabled">
-        <div class="admin-card-num">{userCount ?? 0}</div>
-        <h2>Members</h2>
-        <p>List, promote, or demote students and faculty.</p>
-        <span class="admin-cta">Coming next</span>
-      </div>
+      {canRoles && (
+        <>
+          <a class="admin-card" href="/admin/roles">
+            <div class="admin-card-num">{counts.roles ?? 0}</div>
+            <h2>Roles</h2>
+            <p>Define roles and bundle abilities. System roles can be re-bundled but not deleted.</p>
+            <span class="admin-cta">Manage roles →</span>
+          </a>
+
+          <a class="admin-card" href="/admin/permissions">
+            <div class="admin-card-num">·</div>
+            <h2>Abilities</h2>
+            <p>The catalog of abilities the academy code knows about. Read-only.</p>
+            <span class="admin-cta">View catalog →</span>
+          </a>
+        </>
+      )}
+
+      {canAudit && (
+        <a class="admin-card" href="/admin/log">
+          <div class="admin-card-num">{counts.entries ?? 0}</div>
+          <h2>Audit Log</h2>
+          <p>A timestamped record of every meaningful event — token redemptions, role changes, onboarding milestones.</p>
+          <span class="admin-cta">View log →</span>
+        </a>
+      )}
     </div>
   </main>
 </BaseLayout>
