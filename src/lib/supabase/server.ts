@@ -23,6 +23,7 @@ export type Permission =
   | 'audit.read'
   | 'users.list'
   | 'users.assign_roles'
+  | 'users.reset_password'
   | 'roles.manage';
 
 export type ExperienceLevel = 'none' | 'beginner' | 'intermediate' | 'advanced' | 'expert';
