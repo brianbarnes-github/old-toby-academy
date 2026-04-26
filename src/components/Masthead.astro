@@ -47,9 +47,9 @@ for (const slug of permissions) {
       <a href="/alumni" class:list={[{ active: activeNav === 'alumni' }]}>Alumni Hall</a>
       {hasAdminAccess && <a href="/admin">Admin</a>}
       {user ? (
-        <span class="user-pill" data-role={role ?? 'student'}>
+        <a href="/account" class="user-pill" data-role={role ?? 'student'} title="My account">
           {displayName}<span class="user-role">· {role ?? '—'}</span>
-        </span>
+        </a>
         <form method="POST" action="/api/logout" class="logout-form">
           <button type="submit" class="logout-btn" title="Sign out">Sign out</button>
         </form>
@@ -63,14 +63,17 @@ for (const slug of permissions) {
 <style is:global>
   .nav .user-pill {
     color: var(--forest-deep);
-    border-bottom: none;
+    border-bottom: 1px solid transparent;
     font-family: var(--body);
     font-style: italic;
     text-transform: none;
     letter-spacing: 0;
     padding-left: 12px;
+    padding-bottom: 2px;
     border-left: 1px solid var(--rule-soft);
+    text-decoration: none;
   }
+  .nav .user-pill:hover { border-bottom-color: var(--gold); }
   .nav .user-pill[data-role="faculty"] { color: #8a6e1d; }
   .nav .user-pill[data-role="headmaster"] { color: var(--oxblood); font-weight: 600; }
   .nav .user-role {
