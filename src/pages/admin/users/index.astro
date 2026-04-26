@@ -1,0 +1,146 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+
+const search = (Astro.url.searchParams.get('q') ?? '').trim();
+const filterRole = Astro.url.searchParams.get('role') ?? '';
+
+let query = supabase
+  .from('users_admin')
+  .select('user_id, character_name, primary_role, server, created_at, role_slugs, onboarding_completed_at');
+
+if (search) {
+  query = query.ilike('character_name', `%${search}%`);
+}
+
+if (filterRole) {
+  query = query.contains('role_slugs', [filterRole]);
+}
+
+const { data: users, error: listErr } = await query;
+
+const { data: roles } = await supabase.from('roles').select('slug, name').order('is_system', { ascending: false }).order('name');
+---
+
+<BaseLayout
+  title="Members · Admin · Old Toby Academy"
+  description="Manage members and their roles."
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/admin">Admin</a><span>›</span>
+      <em>Members</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Headmaster's Study</div>
+      <h1>Members</h1>
+      <p class="kicker">Every account in the academy. Click a row to manage that member's roles.</p>
+    </div>
+
+    <form class="filter-form" method="GET">
+      <label>
+        Search by character name
+        <input type="text" name="q" value={search} placeholder="e.g. Pippin" />
+      </label>
+      <label>
+        Filter by role
+        <select name="role">
+          <option value="">— any role —</option>
+          {roles?.map((r) => <option value={r.slug} selected={filterRole === r.slug}>{r.name}</option>)}
+        </select>
+      </label>
+      <button class="btn" type="submit">Apply</button>
+      {(search || filterRole) && <a class="btn btn-ghost" href="/admin/users">Clear</a>}
+    </form>
+
+    {listErr ? (
+      <p class="auth-err">Could not load members: {listErr.message}</p>
+    ) : users && users.length > 0 ? (
+      <table class="nice-table users-table">
+        <thead>
+          <tr>
+            <th>Character</th>
+            <th>Roles</th>
+            <th>Server</th>
+            <th>Joined</th>
+            <th>Onboarded</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((u: any) => (
+            <tr>
+              <td>
+                <a href={`/admin/users/${u.user_id}`} class="member-link">
+                  <span class={`member-name member-name-${u.primary_role ?? 'student'}`}>{u.character_name ?? '(no name)'}</span>
+                </a>
+              </td>
+              <td>
+                <div class="role-chips">
+                  {(u.role_slugs ?? []).map((slug: string) => <span class={`role-chip role-chip-${slug}`}>{slug}</span>)}
+                </div>
+              </td>
+              <td>{u.server ?? <span class="muted">—</span>}</td>
+              <td class="mono small">{new Date(u.created_at).toLocaleDateString()}</td>
+              <td>{u.onboarding_completed_at ? '✓' : <span class="muted">—</span>}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <p class="muted italic">No members match.</p>
+    )}
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .filter-form {
+    display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;
+    padding: 18px 22px; margin: 24px 0;
+    background: rgba(255, 250, 235, 0.4);
+    border: 1px solid var(--rule-soft);
+  }
+  .filter-form label {
+    display: flex; flex-direction: column; gap: 4px;
+    font-family: var(--display); font-size: 0.85rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .filter-form input, .filter-form select {
+    font-family: var(--body); font-size: 1rem; padding: 8px 12px;
+    background: rgba(255, 250, 235, 0.7);
+    border: 1px solid var(--rule-soft); border-radius: 2px;
+    color: var(--ink); letter-spacing: 0; text-transform: none;
+    min-width: 180px;
+  }
+  .filter-form input:focus, .filter-form select:focus { outline: none; border-color: var(--gold); }
+
+  .users-table .member-link { border-bottom: none; }
+  .users-table .member-link:hover { border-bottom: 1px solid var(--gold); }
+  .users-table .member-name { font-weight: 600; }
+  .users-table .member-name-student    { color: #466928; }
+  .users-table .member-name-faculty    { color: #8a6e1d; }
+  .users-table .member-name-headmaster { color: var(--oxblood); }
+
+  .role-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .role-chip {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border: 1px solid var(--rule-soft);
+    background: rgba(255, 250, 235, 0.5);
+    color: var(--ink-soft);
+    border-radius: 2px;
+  }
+  .role-chip-headmaster { color: var(--oxblood); border-color: var(--oxblood); background: rgba(107, 31, 26, 0.05); }
+  .role-chip-faculty    { color: #8a6e1d; border-color: #8a6e1d; background: rgba(168, 132, 58, 0.08); }
+  .role-chip-student    { color: #466928; border-color: #466928; background: rgba(70, 105, 40, 0.05); }
+
+  .small { font-size: 0.85rem; color: var(--ink-soft); }
+</style>

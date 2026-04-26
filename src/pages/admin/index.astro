@@ -17,6 +17,10 @@ const { count: userCount } = await supabase
 const { count: entryCount } = await supabase
   .from('entries')
   .select('*', { count: 'exact', head: true });
+
+const { count: roleCount } = await supabase
+  .from('roles')
+  .select('*', { count: 'exact', head: true });
 ---
 
 <BaseLayout
@@ -39,19 +43,33 @@ const { count: entryCount } = await supabase
         <span class="admin-cta">Manage tokens →</span>
       </a>
 
+      <a class="admin-card" href="/admin/users">
+        <div class="admin-card-num">{userCount ?? 0}</div>
+        <h2>Members</h2>
+        <p>Browse the cohort. Click a member to add or remove roles.</p>
+        <span class="admin-cta">Manage members →</span>
+      </a>
+
+      <a class="admin-card" href="/admin/roles">
+        <div class="admin-card-num">{roleCount ?? 0}</div>
+        <h2>Roles</h2>
+        <p>Define roles and bundle abilities. System roles can be re-bundled but not deleted.</p>
+        <span class="admin-cta">Manage roles →</span>
+      </a>
+
+      <a class="admin-card" href="/admin/permissions">
+        <div class="admin-card-num">·</div>
+        <h2>Abilities</h2>
+        <p>The catalog of abilities the academy code knows about. Read-only.</p>
+        <span class="admin-cta">View catalog →</span>
+      </a>
+
       <a class="admin-card" href="/admin/log">
         <div class="admin-card-num">{entryCount ?? 0}</div>
         <h2>Audit Log</h2>
-        <p>A timestamped record of every meaningful event — token redemptions, rules acceptance, profile updates.</p>
+        <p>A timestamped record of every meaningful event — token redemptions, role changes, onboarding milestones.</p>
         <span class="admin-cta">View log →</span>
       </a>
-
-      <div class="admin-card admin-card-disabled">
-        <div class="admin-card-num">{userCount ?? 0}</div>
-        <h2>Members</h2>
-        <p>List, promote, or demote students and faculty.</p>
-        <span class="admin-cta">Coming next</span>
-      </div>
     </div>
   </main>
 </BaseLayout>

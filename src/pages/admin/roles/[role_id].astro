@@ -1,0 +1,183 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+const supabase = Astro.locals.supabase;
+const { role_id } = Astro.params;
+const error = Astro.url.searchParams.get('error');
+const ok = Astro.url.searchParams.get('ok');
+
+if (!role_id) {
+  return Astro.redirect('/admin/roles');
+}
+
+const { data: role, error: roleErr } = await supabase
+  .from('roles')
+  .select('*')
+  .eq('id', role_id)
+  .maybeSingle();
+
+if (roleErr || !role) {
+  return Astro.redirect('/admin/roles?error=' + encodeURIComponent('Role not found.'));
+}
+
+// Members in this role
+const { data: members } = await supabase
+  .from('user_roles')
+  .select('user_id, granted_at, profiles(character_name, role)')
+  .eq('role_id', role_id);
+
+// All permissions, with which ones this role currently grants
+const { data: allPermissions } = await supabase
+  .from('permissions')
+  .select('id, slug, area, action, description, is_system')
+  .order('area')
+  .order('slug');
+
+const { data: rolePerms } = await supabase
+  .from('role_permissions')
+  .select('permission_id')
+  .eq('role_id', role_id);
+
+const grantedPermIds = new Set((rolePerms ?? []).map((rp: any) => rp.permission_id));
+
+// Group permissions by area
+const permsByArea = new Map<string, any[]>();
+for (const p of allPermissions ?? []) {
+  if (!permsByArea.has(p.area)) permsByArea.set(p.area, []);
+  permsByArea.get(p.area)!.push(p);
+}
+---
+
+<BaseLayout
+  title={`${role.name} · Roles · Admin`}
+  description={`Manage the ${role.name} role.`}
+  footerVariant="short"
+>
+  <main class="page">
+    <div class="crumbs">
+      <a href="/admin">Admin</a><span>›</span>
+      <a href="/admin/roles">Roles</a><span>›</span>
+      <em>{role.name}</em>
+    </div>
+
+    <div class="page-head">
+      <div class="eyebrow">Headmaster's Study</div>
+      <h1 class:list={[`member-name-${role.slug}`]}>
+        {role.name}
+        {role.is_system && <span class="system-flag" style="margin-left: 12px; font-size: 0.6em;">system</span>}
+      </h1>
+      <p class="kicker">
+        Slug: <code>{role.slug}</code>
+        {role.description && <> · {role.description}</>}
+      </p>
+    </div>
+
+    {error && <div class="auth-err">{error}</div>}
+    {ok === 'permissions-updated' && <div class="auth-ok">Permissions saved.</div>}
+    {ok === 'created' && <div class="auth-ok">Role created. Set its permissions below, then assign members from <a href="/admin/users">/admin/users</a>.</div>}
+
+    <div class="admin-section">
+      <h2>Abilities granted</h2>
+      <p class="muted italic">Tick the abilities this role should grant. Save to commit. Headmaster gets every ability by default; remove only with care.</p>
+      <form method="POST" action="/api/admin/update-role-permissions">
+        <input type="hidden" name="role_id" value={role.id} />
+        {[...permsByArea.entries()].map(([area, perms]) => (
+          <fieldset class="perm-fieldset">
+            <legend>{area}</legend>
+            <div class="perm-list">
+              {perms.map((p: any) => (
+                <label class="perm-row">
+                  <input type="checkbox" name="permission_id" value={p.id} checked={grantedPermIds.has(p.id)} />
+                  <span class="perm-text">
+                    <code class="perm-slug">{p.slug}</code>
+                    <span class="perm-desc">{p.description ?? '—'}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ))}
+        <button class="btn" type="submit">Save abilities</button>
+      </form>
+    </div>
+
+    <div class="admin-section">
+      <h2>Members in this role</h2>
+      {members && members.length > 0 ? (
+        <ul class="role-list">
+          {members.map((m: any) => (
+            <li class="role-list-item">
+              <a href={`/admin/users/${m.user_id}`} class="member-link">
+                <span class={`member-name member-name-${m.profiles?.role ?? 'student'}`}>
+                  {m.profiles?.character_name ?? '(no name)'}
+                </span>
+              </a>
+              <span class="role-list-meta mono small">since {new Date(m.granted_at).toLocaleDateString()}</span>
+              <form method="POST" action="/api/admin/revoke-role" class="inline-form" onsubmit="return confirm('Remove this member from this role?');">
+                <input type="hidden" name="user_id" value={m.user_id} />
+                <input type="hidden" name="role_id" value={role.id} />
+                <input type="hidden" name="back" value={`/admin/roles/${role.id}`} />
+                <button class="row-action row-action-danger" type="submit">Remove</button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="muted italic">No members hold this role.</p>
+      )}
+    </div>
+
+    {!role.is_system && (
+      <div class="admin-section danger-section">
+        <h2>Delete role</h2>
+        <p class="muted italic">A role can only be deleted once it has no members. System roles can never be deleted.</p>
+        <form method="POST" action="/api/admin/delete-role" onsubmit="return confirm('Delete this role permanently? This cannot be undone.');">
+          <input type="hidden" name="role_id" value={role.id} />
+          <button class="btn btn-ghost" type="submit" style="border-color: var(--oxblood); color: var(--oxblood);">Delete role</button>
+        </form>
+      </div>
+    )}
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .perm-fieldset {
+    border: 1px solid var(--rule-soft);
+    margin: 12px 0;
+    padding: 14px 18px;
+    background: rgba(255, 250, 235, 0.3);
+  }
+  .perm-fieldset legend {
+    font-family: var(--display);
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 0 8px;
+  }
+  .perm-list { display: flex; flex-direction: column; gap: 8px; }
+  .perm-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 8px 10px;
+    background: rgba(255, 250, 235, 0.5);
+    border: 1px solid var(--rule-soft);
+    cursor: pointer;
+  }
+  .perm-row:has(input:checked) {
+    background: rgba(168, 132, 58, 0.10);
+    border-color: var(--gold);
+  }
+  .perm-row input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--gold);
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .perm-text { display: flex; flex-direction: column; gap: 2px; }
+  .perm-slug { font-family: var(--mono); font-size: 0.88rem; color: var(--oxblood); background: rgba(31, 58, 46, 0.06); padding: 1px 6px; border-radius: 2px; align-self: flex-start; }
+  .perm-desc { font-size: 0.92rem; color: var(--ink-soft); font-style: italic; }
+
+  .danger-section { margin-top: 64px; padding-top: 24px; border-top: 2px solid rgba(107, 31, 26, 0.2); }
+</style>

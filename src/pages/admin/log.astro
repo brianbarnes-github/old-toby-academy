@@ -32,7 +32,18 @@ if (userIds.length > 0) {
   }
 }
 
-const eventTypes = ['token_redeemed', 'token_revoked', 'rules_accepted', 'profile_updated', 'onboarding_completed'];
+const eventTypes = [
+  'token_redeemed',
+  'token_revoked',
+  'rules_accepted',
+  'profile_updated',
+  'onboarding_completed',
+  'role_granted',
+  'role_revoked',
+  'role_created',
+  'role_deleted',
+  'role_permissions_updated',
+];
 
 function formatDetails(d: any): string {
   if (!d || Object.keys(d).length === 0) return '—';
