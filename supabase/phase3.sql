@@ -75,8 +75,8 @@ begin
     raise exception 'role must be student or faculty';
   end if;
 
-  -- 16-char URL-safe token from random bytes (base64-like, hex for simplicity)
-  v_token := encode(gen_random_bytes(12), 'hex');
+  -- 32-char hex token from a random UUID (no pgcrypto dependency)
+  v_token := replace(gen_random_uuid()::text, '-', '');
 
   insert into public.invite_tokens (token, role, expires_at, created_by)
   values (
