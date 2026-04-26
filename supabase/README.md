@@ -41,5 +41,10 @@ The marker INSERT records that the migration ran, so you (or future-you) can run
 | `phase10.sql` | 10 | `avatar_url`, `bio`; `avatars` storage bucket + policies |
 | `phase11.sql` | 11 | `rate_limits` + `record_rate_limit`, `purge_old_rate_limits` |
 | `phase12.sql` | 12 | `schema_migrations` (tracking) + `log_bot_block` (honeypot helper) |
+| `phase14.sql` | 14 | tokens carry any role: `invite_tokens.role`, updated `redeem_token` |
+| `phase15.sql` | 15 | `progress_marks` table + `progress.read` permission |
+| `phase16.sql` | 16 | dynamic course system: `courses`, `classes`, `courses.author` permission, RLS |
+| `phase17.sql` | 17 | `library_entries`, `library-files` storage bucket, `library.contribute` permission |
+| `phase19.sql` | 19 | `class_attachments`, `class-files` storage bucket (mirrors phase17 pattern) |
 
-(Phase 9 was code-only — `/account` page — no schema change.)
+(Phase 9 was code-only — `/account` page — no schema change. Phase 13 added vitest + CI, no schema. Phase 18 was code-only — Library music-theory chapters as static Astro pages.)

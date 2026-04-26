@@ -32,6 +32,23 @@ if (!isAuthor && !isHeadmaster) {
   return new Response("Forbidden — you don't own this class.", { status: 403 });
 }
 
+const { data: attachments } = await supabase
+  .from('class_attachments')
+  .select('id, kind, file_path, file_name, file_size, content_type, caption, created_at')
+  .eq('class_id', cls.id)
+  .order('created_at', { ascending: true });
+
+function publicUrl(path: string): string {
+  return supabase.storage.from('class-files').getPublicUrl(path).data.publicUrl;
+}
+
+function fmtSize(bytes: number | null): string {
+  if (!bytes) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 const error = Astro.url.searchParams.get('error');
 const ok = Astro.url.searchParams.get('ok');
 ---
@@ -61,7 +78,8 @@ const ok = Astro.url.searchParams.get('ok');
     {ok === 'published'    && <div class="auth-ok">Class published.</div>}
     {ok === 'unpublished'  && <div class="auth-ok">Class unpublished.</div>}
     {ok === 'completed'    && <div class="auth-ok">Marked complete. {course.title === undefined ? '' : 'In sequential mode, the next class is now unlocked for students.'}</div>}
-    {ok === 'reopened'     && <div class="auth-ok">Reopened.</div>}
+    {ok === 'reopened'         && <div class="auth-ok">Reopened.</div>}
+    {ok === 'attachment_deleted' && <div class="auth-ok">Attachment removed.</div>}
 
     <div class="course-edit-grid">
       <form class="auth-form course-form" method="POST" action="/api/courses/classes/save">
@@ -82,7 +100,8 @@ const ok = Astro.url.searchParams.get('ok');
           <input type="number" name="order_index" value={cls.order_index ?? 0} min="0" />
         </label>
         <label>Body (markdown)
-          <textarea name="body_md" rows="20">{cls.body_md ?? ''}</textarea>
+          <span class="field-hint">Use <code>- [ ] task text</code> for interactive student checkboxes. Headings <code>##</code>, lists, code blocks, and raw HTML all work — see <a href="/docs/authoring-classes">the authoring guide</a>.</span>
+          <textarea id="body-textarea" name="body_md" rows="20">{cls.body_md ?? ''}</textarea>
         </label>
         <button class="btn" type="submit">Save changes</button>
       </form>
@@ -136,5 +155,311 @@ const ok = Astro.url.searchParams.get('ok');
         </div>
       </aside>
     </div>
+
+    <section class="attachments-section">
+      <h2>Attachments</h2>
+      <p class="muted italic" style="font-size: 0.95rem;">
+        Upload images and files here. Use the <strong>Insert</strong> button on each row to drop a markdown reference into the body at your cursor. Images render inline; non-images render as download links.
+      </p>
+
+      <div class="attach-uploaders">
+        <form
+          class="attach-form"
+          method="POST"
+          action="/api/courses/classes/upload"
+          enctype="multipart/form-data"
+          data-kind="image"
+        >
+          <CsrfField />
+          <input type="hidden" name="class_id" value={cls.id} />
+          <input type="hidden" name="kind" value="image" />
+          <label class="attach-label">
+            <span>Upload image</span>
+            <input type="file" name="file" accept="image/*" required />
+          </label>
+          <input type="text" name="caption" placeholder="Optional caption / alt text" maxlength="200" />
+          <button class="btn btn-ghost" type="submit">Upload image</button>
+        </form>
+
+        <form
+          class="attach-form"
+          method="POST"
+          action="/api/courses/classes/upload"
+          enctype="multipart/form-data"
+          data-kind="file"
+        >
+          <CsrfField />
+          <input type="hidden" name="class_id" value={cls.id} />
+          <input type="hidden" name="kind" value="file" />
+          <label class="attach-label">
+            <span>Upload file</span>
+            <input type="file" name="file" required />
+          </label>
+          <input type="text" name="caption" placeholder="Optional label" maxlength="200" />
+          <button class="btn btn-ghost" type="submit">Upload file</button>
+        </form>
+      </div>
+
+      <div id="attach-error" class="auth-err" style="display:none; margin-top:16px;"></div>
+
+      {(!attachments || attachments.length === 0) ? (
+        <p class="muted italic" style="margin-top: 24px;">No attachments yet.</p>
+      ) : (
+        <div class="attach-grid" id="attach-grid">
+          {attachments.map((a: any) => {
+            const url = publicUrl(a.file_path);
+            const md = a.kind === 'image'
+              ? `![${a.caption ?? ''}](${url})`
+              : `[${a.caption ?? a.file_name}](${url})`;
+            return (
+              <article class="attach-card" data-md={md}>
+                <div class="attach-thumb">
+                  {a.kind === 'image' ? (
+                    <img src={url} alt={a.caption ?? a.file_name} />
+                  ) : (
+                    <span class="attach-fileicon">📄</span>
+                  )}
+                </div>
+                <div class="attach-meta">
+                  <span class="attach-name">{a.file_name}</span>
+                  <span class="attach-sub">{a.kind} · {fmtSize(a.file_size)}</span>
+                  {a.caption && <span class="attach-caption">"{a.caption}"</span>}
+                </div>
+                <div class="attach-actions">
+                  <button type="button" class="btn btn-ghost btn-sm js-insert" data-md={md}>Insert</button>
+                  <a class="row-action" href={url} target="_blank" rel="noopener noreferrer">View</a>
+                  <form method="POST" action="/api/courses/classes/attachment-delete" onsubmit="return confirm('Delete this attachment?');" style="display:inline;">
+                    <CsrfField />
+                    <input type="hidden" name="attachment_id" value={a.id} />
+                    <input type="hidden" name="course_slug"   value={course.slug} />
+                    <input type="hidden" name="class_slug"    value={cls.slug} />
+                    <button type="submit" class="row-action danger">Delete</button>
+                  </form>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
   </main>
 </BaseLayout>
+
+<script is:inline>
+  // Async upload + cursor-insert. Falls back to a plain form post if JS is off.
+  document.addEventListener('DOMContentLoaded', () => {
+    const textarea = document.getElementById('body-textarea');
+    const errorBox = document.getElementById('attach-error');
+
+    function showError(msg) {
+      if (!errorBox) return;
+      errorBox.textContent = msg;
+      errorBox.style.display = 'block';
+    }
+    function clearError() {
+      if (errorBox) errorBox.style.display = 'none';
+    }
+
+    function insertAtCursor(text) {
+      if (!textarea) return;
+      const start = textarea.selectionStart ?? textarea.value.length;
+      const end = textarea.selectionEnd ?? textarea.value.length;
+      const before = textarea.value.slice(0, start);
+      const after = textarea.value.slice(end);
+      const sep = before.length === 0 || before.endsWith('\n') ? '' : '\n\n';
+      textarea.value = before + sep + text + '\n' + after;
+      const cursor = (before + sep + text + '\n').length;
+      textarea.focus();
+      textarea.setSelectionRange(cursor, cursor);
+    }
+
+    document.querySelectorAll('.js-insert').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const md = btn.getAttribute('data-md');
+        if (md) insertAtCursor(md);
+      });
+    });
+
+    document.querySelectorAll('.attach-form').forEach((form) => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearError();
+        const fd = new FormData(form);
+        const button = form.querySelector('button[type="submit"]');
+        if (button) button.disabled = true;
+        try {
+          const res = await fetch(form.action, {
+            method: 'POST',
+            body: fd,
+            credentials: 'same-origin',
+          });
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({ error: res.statusText }));
+            showError(body.error || 'Upload failed.');
+            return;
+          }
+          const data = await res.json();
+          const md = data.kind === 'image'
+            ? `![${data.caption ?? ''}](${data.url})`
+            : `[${data.caption ?? data.file_name}](${data.url})`;
+          insertAtCursor(md);
+          // Reload to refresh the attachments grid (simpler than client-side append).
+          window.location.reload();
+        } catch (err) {
+          showError('Upload failed: ' + (err && err.message ? err.message : 'unknown'));
+        } finally {
+          if (button) button.disabled = false;
+        }
+      });
+    });
+  });
+</script>
+
+<style is:global>
+  .field-hint {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin-top: -4px;
+    margin-bottom: 6px;
+  }
+  .field-hint code {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    background: rgba(168, 132, 58, 0.18);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  .attachments-section {
+    margin: 64px auto 0;
+    max-width: 1100px;
+    padding-top: 32px;
+    border-top: 1px double var(--rule-soft);
+  }
+  .attachments-section h2 {
+    font-style: italic;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .attach-uploaders {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 24px;
+  }
+  .attach-form {
+    padding: 18px 20px;
+    background: rgba(255, 250, 235, 0.55);
+    border: 1px solid var(--rule-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .attach-label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+  .attach-form input[type="file"] {
+    font-family: var(--body);
+    font-size: 0.92rem;
+  }
+  .attach-form input[type="text"] {
+    width: 100%;
+    font-family: var(--body);
+    padding: 6px 8px;
+    border: 1px solid var(--rule-soft);
+    background: rgba(255, 250, 235, 0.8);
+  }
+
+  .attach-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+    margin-top: 24px;
+  }
+  .attach-card {
+    border: 1px solid var(--rule-soft);
+    background: rgba(255, 250, 235, 0.5);
+    padding: 14px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .attach-thumb {
+    width: 64px;
+    height: 64px;
+    flex: 0 0 64px;
+    border: 1px solid var(--rule-soft);
+    background: var(--parchment);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .attach-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .attach-fileicon {
+    font-size: 1.6rem;
+  }
+  .attach-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .attach-name {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 0.98rem;
+    color: var(--forest-deep);
+    word-break: break-all;
+  }
+  .attach-sub {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+  }
+  .attach-caption {
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .attach-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+  }
+  .btn-sm {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
+  .row-action.danger {
+    color: var(--oxblood);
+    background: none;
+    border: none;
+    font-family: var(--display);
+    font-style: italic;
+    cursor: pointer;
+    padding: 0;
+  }
+  .row-action.danger:hover { color: var(--oxblood-deep); }
+
+  @media (max-width: 880px) {
+    .attach-uploaders { grid-template-columns: 1fr; }
+  }
+</style>
