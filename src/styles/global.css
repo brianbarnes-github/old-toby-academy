@@ -377,3 +377,12 @@ tr:hover td { background: rgba(168, 132, 58, 0.06); }
   font-size: 0.92rem; font-style: italic;
   color: var(--ink-soft);
 }
+
+/* Honeypot — invisible to humans, irresistible to dumb bots */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  pointer-events: none;
+}

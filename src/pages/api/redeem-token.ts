@@ -24,12 +24,20 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const character = String(formData.get('character') ?? '').trim();
   const password = String(formData.get('password') ?? '');
   const server = String(formData.get('server') ?? '').trim() || null;
+  const honeypot = String(formData.get('hp_website') ?? '').trim();
 
   const fields = { token, character };
-
-  // Rate limit
   const supabase = createSupabaseServerClient(cookies, request.headers);
   const ip = getClientIp(request);
+
+  // Honeypot — if a bot filled the hidden field, log it and silently
+  // redirect home. They get no signal that the account wasn't created.
+  if (honeypot) {
+    await supabase.rpc('log_bot_block', { p_endpoint: '/api/redeem-token', p_ip: ip });
+    return redirect('/');
+  }
+
+  // Rate limit
   const { data: attemptCount } = await supabase.rpc('record_rate_limit', {
     p_ip: ip,
     p_endpoint: '/api/redeem-token',

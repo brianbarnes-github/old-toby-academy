@@ -24,6 +24,11 @@ const character = Astro.url.searchParams.get('character') ?? '';
 
       <form class="auth-form" method="POST" action="/api/redeem-token">
         <CsrfField />
+        <div class="honeypot" aria-hidden="true">
+          <label for="hp-website">If you can read this, leave it blank
+            <input type="text" id="hp-website" name="hp_website" tabindex="-1" autocomplete="off" />
+          </label>
+        </div>
         <label>Invite token<input type="text" name="token" required value={tokenFromQuery} placeholder="given to you by the headmaster" autocomplete="off" /></label>
         <label>Character name<input type="text" name="character" required value={character} placeholder="e.g. Vydor" autocomplete="username" /></label>
         <label>Password<input type="password" name="password" required minlength="6" autocomplete="new-password" /></label>
