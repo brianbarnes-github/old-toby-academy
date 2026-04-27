@@ -1,14 +1,62 @@
 # Authoring Classes — Old Toby Academy
 
 A practical guide for faculty (and the headmaster) on how to write course
-content. Every class body is plain Markdown stored in the `classes.body_md`
-column and rendered server-side by `marked`. There are no MDX components and
-no build step — what you paste in the editor is what students see.
+content. Class bodies live in the `classes.body_md` column as Markdown and
+are rendered server-side by `marked`.
 
-This guide covers the workflow, the Markdown features supported, and the
-custom styling that applies once your content is rendered on the class page.
+You can author them two ways:
+
+1. **Visual editor** (default) — toolbar-driven contenteditable canvas.
+   Click `B` for bold, pick H2/H3 from the dropdown, click `☐` to start a
+   task list, etc. You don't have to type any markdown characters. The
+   editor still saves to the same `body_md` column as Markdown text.
+2. **Source mode** — flip the `Source` toggle in the toolbar to drop
+   into raw Markdown. Useful for inline SVG, `<details>` blocks,
+   `<iframe>` embeds, complex tables, or anything the visual editor
+   can't represent. The class auto-opens in source mode if the body
+   already contains raw HTML or a GFM table.
+
+This guide covers both flows and the Markdown features they support.
 
 ---
+
+## Visual editor — quick reference
+
+The toolbar groups buttons by type:
+
+| Group | Buttons |
+|---|---|
+| **Inline** | Bold (`B`), Italic (`I`), Strikethrough (`S`), Inline code (`</>`), Link (`🔗`) |
+| **Block** | H2, H3, Paragraph (`¶`), Blockquote (`❝`), Bullet list (`•─`), Numbered list (`1.`), Task list (`☐`), Code block (`{ }`), Horizontal rule (`―`) |
+| **Insert** | Image (`🖼` — scrolls to the Attachments panel), Quiz (dropdown of this class's existing quizzes) |
+| **Mode** | `Source` (toggle to raw markdown editing) |
+
+Keyboard shortcuts: <kbd>Ctrl/Cmd+B</kbd> bold, <kbd>Ctrl/Cmd+I</kbd> italic.
+Most other shortcuts work the same as a normal contenteditable area.
+
+Quiz shortcodes appear as parchment-and-gold chips reading
+`Quiz: <slug>`. To insert one, pick from the **Quiz** dropdown — it lists
+the quizzes you've already created on the same class. To remove one,
+click it and press Backspace.
+
+## When to flip to Source mode
+
+The visual editor handles paragraphs, headings, lists, blockquotes,
+links, images, code blocks, task lists, and quiz shortcodes. It does
+**not** handle:
+
+- Raw HTML (inline SVG, `<details>` toggles, `<iframe>` embeds, custom
+  `<div class="...">` callouts)
+- GFM pipe tables (the visual editor doesn't have a table node in v1)
+
+If a class already contains any of those, opening it auto-flips to
+source mode and shows a banner explaining why. You can still toggle
+back to visual mode — the editor will preserve your raw HTML as-is in
+the underlying markdown — but the editor canvas won't show the embedded
+HTML rendered.
+
+For new classes that need raw HTML or tables, just toggle to Source,
+write the markdown, save. You can keep going in either mode.
 
 ## TL;DR
 

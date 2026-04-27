@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import CsrfField from '../../../../components/CsrfField.astro';
+import BodyEditor from '../../../../components/BodyEditor.astro';
 
 export const prerender = false;
 
@@ -119,10 +120,11 @@ const ok = Astro.url.searchParams.get('ok');
         <label>Order index
           <input type="number" name="order_index" value={cls.order_index ?? 0} min="0" />
         </label>
-        <label>Body (markdown)
-          <span class="field-hint">Use <code>- [ ] task text</code> for interactive student checkboxes. Headings <code>##</code>, lists, code blocks, and raw HTML all work — see <a href="/docs/authoring-classes">the authoring guide</a>.</span>
-          <textarea id="body-textarea" name="body_md" rows="20">{cls.body_md ?? ''}</textarea>
-        </label>
+        <div class="be-field-wrap">
+          <label class="be-field-label">Body</label>
+          <span class="field-hint">Use the toolbar to format. Click <strong>Source</strong> to drop into raw markdown for advanced cases (inline SVG, tables, etc.). See <a href="/docs/authoring-classes">the authoring guide</a>.</span>
+          <BodyEditor body={cls.body_md ?? ''} quizzes={(quizzes ?? []) as any} />
+        </div>
         <button class="btn" type="submit">Save changes</button>
       </form>
 
@@ -246,7 +248,14 @@ const ok = Astro.url.searchParams.get('ok');
                   {a.caption && <span class="attach-caption">"{a.caption}"</span>}
                 </div>
                 <div class="attach-actions">
-                  <button type="button" class="btn btn-ghost btn-sm js-insert" data-md={md}>Insert</button>
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-sm js-insert"
+                    data-kind={a.kind}
+                    data-url={url}
+                    data-label={a.caption ?? a.file_name}
+                    data-md={md}
+                  >Insert</button>
                   <a class="row-action" href={url} target="_blank" rel="noopener noreferrer">View</a>
                   <form method="POST" action="/api/courses/classes/attachment-delete" onsubmit="return confirm('Delete this attachment?');" style="display:inline;">
                     <CsrfField />
@@ -485,10 +494,34 @@ const ok = Astro.url.searchParams.get('ok');
       textarea.setSelectionRange(cursor, cursor);
     }
 
+    // Dispatch through the visual editor when it's mounted; otherwise
+    // fall back to direct textarea cursor-insert (works in source mode
+    // and when JS for the editor hasn't loaded yet).
+    function dispatchInsert(kind, payload) {
+      const ed = window.bodyEditor;
+      if (ed && ed.getMode && ed.getMode() === 'visual') {
+        if (kind === 'image') ed.insertImage(payload.url, payload.alt);
+        else                  ed.insertFileLink(payload.url, payload.label);
+        return;
+      }
+      const md = kind === 'image'
+        ? `![${payload.alt ?? ''}](${payload.url})`
+        : `[${payload.label ?? payload.url}](${payload.url})`;
+      insertAtCursor(md);
+    }
+
     document.querySelectorAll('.js-insert').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const md = btn.getAttribute('data-md');
-        if (md) insertAtCursor(md);
+        const url = btn.getAttribute('data-url');
+        const kind = btn.getAttribute('data-kind');
+        const label = btn.getAttribute('data-label') || '';
+        if (url && kind) {
+          dispatchInsert(kind, { url, alt: label, label });
+        } else {
+          // Backwards-compat: legacy data-md attribute carries pre-built markdown.
+          const md = btn.getAttribute('data-md');
+          if (md) insertAtCursor(md);
+        }
       });
     });
 
@@ -511,10 +544,13 @@ const ok = Astro.url.searchParams.get('ok');
             return;
           }
           const data = await res.json();
-          const md = data.kind === 'image'
-            ? `![${data.caption ?? ''}](${data.url})`
-            : `[${data.caption ?? data.file_name}](${data.url})`;
-          insertAtCursor(md);
+          // Insert via the visual editor when it's active, otherwise fall
+          // back to writing markdown into the textarea cursor.
+          dispatchInsert(data.kind, {
+            url: data.url,
+            alt: data.caption ?? '',
+            label: data.caption ?? data.file_name,
+          });
           // Reload to refresh the attachments grid (simpler than client-side append).
           window.location.reload();
         } catch (err) {
