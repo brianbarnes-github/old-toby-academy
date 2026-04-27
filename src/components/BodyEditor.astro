@@ -1,0 +1,256 @@
+---
+interface Quiz {
+  slug: string;
+  title: string;
+}
+interface Props {
+  body: string;
+  quizzes: Quiz[];
+  textareaId?: string;
+}
+const { body, quizzes, textareaId = 'body-textarea' } = Astro.props;
+const quizzesJson = JSON.stringify(
+  (quizzes ?? []).map((q) => ({ slug: q.slug, title: q.title })),
+);
+---
+
+<div class="body-editor" data-quizzes={quizzesJson}>
+  <textarea
+    class="be-source"
+    name="body_md"
+    id={textareaId}
+    rows="20"
+  >{body}</textarea>
+</div>
+
+<script>
+  import '../scripts/body-editor/index.js';
+</script>
+
+<style is:global>
+  .body-editor {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--rule-soft);
+    background: var(--parchment);
+    margin-top: 4px;
+  }
+
+  /* ===== Toolbar ===== */
+  .body-editor .be-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px 10px;
+    background: linear-gradient(180deg, rgba(217, 195, 136, 0.25), rgba(255, 250, 235, 0.55));
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .body-editor .be-tg {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding-right: 8px;
+    border-right: 1px dashed var(--rule-soft);
+  }
+  .body-editor .be-tg:last-child { border-right: none; padding-right: 0; }
+  .body-editor .be-spacer { flex: 1; border: none; }
+  .body-editor .be-btn {
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 5px 9px;
+    cursor: pointer;
+    font-family: var(--display);
+    font-size: 0.9rem;
+    line-height: 1;
+    border-radius: 2px;
+    min-width: 30px;
+    text-align: center;
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .body-editor .be-btn:hover {
+    background: rgba(168, 132, 58, 0.15);
+    border-color: var(--gold);
+    color: var(--ink);
+  }
+  .body-editor .be-btn:focus-visible {
+    outline: 2px solid var(--oxblood);
+    outline-offset: 1px;
+  }
+  .body-editor .be-mode-toggle {
+    font-style: italic;
+    padding: 5px 12px;
+  }
+  .body-editor .be-mode-toggle[aria-pressed="true"] {
+    background: var(--gold);
+    color: var(--ink);
+    border-color: var(--gold);
+  }
+  .body-editor .be-quiz-select {
+    border: 1px solid var(--rule-soft);
+    background: var(--parchment);
+    font-family: var(--display);
+    font-size: 0.88rem;
+    padding: 4px 6px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  /* ===== Banner ===== */
+  .body-editor .be-banner-host:empty { display: none; }
+  .body-editor .be-banner {
+    padding: 8px 14px;
+    background: rgba(168, 132, 58, 0.15);
+    border-bottom: 1px solid var(--rule-soft);
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+  }
+
+  /* ===== Mode visibility =====
+   * Defaults are "source" mode equivalent: textarea visible, canvas
+   * hidden. This way the form is fully functional for no-JS or
+   * before-mount, and the editor's JS just transitions to visual when
+   * appropriate. */
+  .body-editor .be-canvas { display: none; }
+  .body-editor .be-source { display: block; }
+  .body-editor[data-mode="visual"] .be-canvas { display: block; }
+  .body-editor[data-mode="visual"] .be-source { display: none; }
+  .body-editor[data-mode="source"] .be-canvas { display: none; }
+  .body-editor[data-mode="source"] .be-source { display: block; }
+
+  /* ===== Canvas (rendered editor) ===== */
+  .body-editor .be-canvas {
+    padding: 18px 22px;
+    min-height: 360px;
+    font-family: var(--body);
+    font-size: 1rem;
+    line-height: 1.7;
+    background: var(--parchment);
+  }
+  .body-editor .be-canvas .ProseMirror {
+    outline: none;
+    min-height: 320px;
+  }
+  .body-editor .be-canvas .ProseMirror:focus { outline: none; }
+  .body-editor .be-canvas h1,
+  .body-editor .be-canvas h2,
+  .body-editor .be-canvas h3,
+  .body-editor .be-canvas h4 {
+    font-family: var(--display);
+    color: var(--forest-deep);
+    margin: 1em 0 0.4em;
+  }
+  .body-editor .be-canvas h2 { font-style: italic; font-weight: 500; font-size: 1.6rem; }
+  .body-editor .be-canvas h3 { font-weight: 500; font-size: 1.3rem; }
+  .body-editor .be-canvas p { margin: 0 0 1em; }
+  .body-editor .be-canvas ul, .body-editor .be-canvas ol { padding-left: 24px; margin: 1em 0; }
+  .body-editor .be-canvas li { margin-bottom: 0.4em; }
+  .body-editor .be-canvas blockquote {
+    border-left: 3px solid var(--gold);
+    padding-left: 14px;
+    margin: 1em 0;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+  .body-editor .be-canvas code {
+    background: rgba(168, 132, 58, 0.18);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: 0.92em;
+  }
+  .body-editor .be-canvas pre {
+    background: var(--ink);
+    color: #ddd0a8;
+    padding: 14px 18px;
+    border-left: 3px solid var(--gold);
+    overflow-x: auto;
+    margin: 1em 0;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+  }
+  .body-editor .be-canvas pre code { background: none; padding: 0; color: inherit; }
+  .body-editor .be-canvas hr {
+    border: 0;
+    border-top: 1px double var(--rule-soft);
+    margin: 1.5em 0;
+  }
+  .body-editor .be-canvas img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--rule-soft);
+  }
+  .body-editor .be-canvas a {
+    color: var(--oxblood);
+    text-decoration: underline;
+  }
+  /* Task list checkbox styling inside the editor */
+  .body-editor .be-canvas ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0;
+  }
+  .body-editor .be-canvas ul[data-type="taskList"] li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .body-editor .be-canvas ul[data-type="taskList"] li > label {
+    flex: 0 0 auto;
+    margin-top: 4px;
+  }
+  .body-editor .be-canvas ul[data-type="taskList"] li > div {
+    flex: 1;
+  }
+  .body-editor .be-canvas ul[data-type="taskList"] input[type="checkbox"] {
+    accent-color: var(--gold);
+    cursor: default;
+  }
+
+  /* Quiz shortcode chip inside the canvas */
+  .body-editor .be-canvas .be-quiz-chip {
+    display: inline-block;
+    padding: 2px 10px;
+    margin: 0 2px;
+    background: rgba(168, 132, 58, 0.18);
+    border: 1px solid var(--gold);
+    border-radius: 2px;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    user-select: none;
+    vertical-align: baseline;
+  }
+  .body-editor .be-canvas .be-quiz-chip.ProseMirror-selectednode {
+    background: var(--gold);
+    color: var(--ink);
+  }
+
+  /* ===== Source-mode textarea ===== */
+  .body-editor .be-source {
+    width: 100%;
+    border: none;
+    padding: 18px 22px;
+    background: var(--parchment);
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--ink);
+    resize: vertical;
+    min-height: 360px;
+  }
+  .body-editor .be-source:focus { outline: 2px solid var(--gold); outline-offset: -2px; }
+
+  /* Style for the field-wrap label that lives outside the editor */
+  .be-field-wrap { margin: 14px 0 0; }
+  .be-field-wrap .be-field-label {
+    display: block;
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .be-field-wrap .field-hint { margin-bottom: 4px; }
+</style>
