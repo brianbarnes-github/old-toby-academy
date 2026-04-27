@@ -46,5 +46,6 @@ The marker INSERT records that the migration ran, so you (or future-you) can run
 | `phase16.sql` | 16 | dynamic course system: `courses`, `classes`, `courses.author` permission, RLS |
 | `phase17.sql` | 17 | `library_entries`, `library-files` storage bucket, `library.contribute` permission |
 | `phase19.sql` | 19 | `class_attachments`, `class-files` storage bucket (mirrors phase17 pattern) |
+| `phase20.sql` | 20 | `class_quizzes`, `class_quiz_questions`, `class_quiz_options` + RLS; in-class single-correct multiple-choice quizzes |
 
 (Phase 9 was code-only — `/account` page — no schema change. Phase 13 added vitest + CI, no schema. Phase 18 was code-only — Library music-theory chapters as static Astro pages.)

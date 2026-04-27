@@ -232,6 +232,74 @@ for site-wide reusable assets (the way the Library does), but for class-
 specific content prefer the attachments panel — it keeps each class's
 files together and survives a course rename.
 
+## Quizzes
+
+A class can have one or more inline quizzes. Each quiz holds one or more
+single-correct multiple-choice questions. Students see immediate feedback
+(✓/✗ + your explanation) and can retry; the latest answer is persisted
+to the `progress_marks` table.
+
+### Authoring
+
+The class edit page has a **Quizzes** section below Attachments.
+
+1. Click `+ New quiz`. Fill in:
+   - **Title** — shown above the questions on the rendered class page
+   - **Slug** — URL-safe id used in the body shortcode (e.g. `relative-minors`)
+   - **Intro** (optional, markdown) — a paragraph above the questions
+   - **Order index** — controls quiz order if you have several
+2. Click `Create quiz`. The new quiz appears in the list.
+3. Click `+ Add question` on the quiz. Fill in:
+   - **Prompt** (markdown) — the question text. Markdown works, so you
+     can include code, bold, inline math, links to the Library, etc.
+   - **Options** — 2 to 6 plain-text labels. Click the radio button next
+     to the correct one. Empty option rows are ignored.
+   - **Explanation** (optional, markdown) — shown after the student
+     submits. Use this to teach: link to a Library chapter, explain
+     *why* the right answer is right.
+4. Save. Repeat for more questions.
+5. **Mount the quiz in the body** by pasting:
+   ```
+   [[quiz: your-slug]]
+   ```
+   anywhere in the class body. The shortcode is replaced with the
+   rendered quiz at view time.
+
+A few notes:
+
+- **One correct option per question.** The schema enforces this with a
+  partial unique index — if you try to mark two correct, the save will
+  fail.
+- **Editing a question wholesale-replaces the options.** That's the
+  simplest UX; the only price is that any student who'd already answered
+  the question against an *old* option ID will see their answer ignored
+  on next view. If you only want to fix a typo in an option label, edit
+  it in place — leave the radio selection alone.
+- **Don't put `[[quiz: ...]]` inside a code sample.** The shortcode
+  replacement runs over the rendered HTML, so it'll match inside `<code>`
+  too. If you must demo the syntax in a code block, escape one bracket
+  or use a different placeholder.
+- **The shortcode without a matching quiz** renders an inline warning
+  badge, not an error — useful while you're authoring.
+
+### Student experience
+
+When a student visits a class with quizzes:
+
+- Each question renders as a list of radio options + Submit button
+- On submit, the picked option is marked ✓ or ✗, the correct option is
+  highlighted, and the explanation reveals
+- They can change their mind and submit again — the latest answer wins
+- State persists across reloads, devices, and sessions (it lives in the
+  database, not localStorage)
+
+### Permissions
+
+Authoring (create/edit/delete quizzes and questions) requires
+`courses.author` on a class you own (or headmaster). Submitting answers
+just requires being signed in. The `progress.read` permission lets the
+headmaster query everyone's quiz responses for future grading dashboards.
+
 ## How it renders — style cheat sheet
 
 The class body inherits these styles (defined in
@@ -360,6 +428,11 @@ before you save.
 - **Append, don't reorder, tasks.** Checkbox state is keyed by position
   in the class. New tasks at the bottom don't disturb existing student
   progress.
+- **Quiz slugs are stable; option text is editable.** Quiz answers are
+  keyed by question UUID, so renaming a quiz title is fine. Editing an
+  option's text is fine too (the option's UUID doesn't change). What
+  *does* shift state: deleting a question, or re-saving a question with
+  a different number of options.
 - **Test as a student.** The author and headmaster see drafts and locked
   classes; create a throwaway student account (or have someone else log
   in) to confirm what learners actually see.

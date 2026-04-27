@@ -38,6 +38,22 @@ const { data: attachments } = await supabase
   .eq('class_id', cls.id)
   .order('created_at', { ascending: true });
 
+const { data: quizzes } = await supabase
+  .from('class_quizzes')
+  .select(`
+    id, slug, title, intro_md, order_index,
+    class_quiz_questions (
+      id, prompt_md, explanation_md, order_index,
+      class_quiz_options ( id, label, is_correct, order_index )
+    )
+  `)
+  .eq('class_id', cls.id)
+  .order('order_index', { ascending: true });
+
+function sortByOrder<T extends { order_index?: number | null }>(arr: T[] | null | undefined): T[] {
+  return (arr ?? []).slice().sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+}
+
 function publicUrl(path: string): string {
   return supabase.storage.from('class-files').getPublicUrl(path).data.publicUrl;
 }
@@ -80,6 +96,10 @@ const ok = Astro.url.searchParams.get('ok');
     {ok === 'completed'    && <div class="auth-ok">Marked complete. {course.title === undefined ? '' : 'In sequential mode, the next class is now unlocked for students.'}</div>}
     {ok === 'reopened'         && <div class="auth-ok">Reopened.</div>}
     {ok === 'attachment_deleted' && <div class="auth-ok">Attachment removed.</div>}
+    {ok === 'quiz_saved'         && <div class="auth-ok">Quiz saved.</div>}
+    {ok === 'quiz_deleted'       && <div class="auth-ok">Quiz removed.</div>}
+    {ok === 'question_saved'     && <div class="auth-ok">Question saved.</div>}
+    {ok === 'question_deleted'   && <div class="auth-ok">Question removed.</div>}
 
     <div class="course-edit-grid">
       <form class="auth-form course-form" method="POST" action="/api/courses/classes/save">
@@ -236,6 +256,198 @@ const ok = Astro.url.searchParams.get('ok');
                     <button type="submit" class="row-action danger">Delete</button>
                   </form>
                 </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+
+    <section class="quizzes-section">
+      <h2>Quizzes</h2>
+      <p class="muted italic" style="font-size: 0.95rem;">
+        Author single-correct multiple-choice questions. Mount a quiz in the body with <code>[[quiz: your-slug]]</code>. Students see immediate feedback (correct / incorrect + your explanation) and can retry.
+      </p>
+
+      <details class="quiz-new-details">
+        <summary class="btn btn-ghost" style="cursor:pointer; display:inline-block;">+ New quiz</summary>
+        <form class="auth-form quiz-meta-form" method="POST" action="/api/courses/classes/quizzes/save" style="margin-top: 16px;">
+          <CsrfField />
+          <input type="hidden" name="class_id"    value={cls.id} />
+          <input type="hidden" name="course_slug" value={course.slug} />
+          <input type="hidden" name="class_slug"  value={cls.slug} />
+          <label>Title
+            <input type="text" name="title" required maxlength="120" placeholder="Relative minors" />
+          </label>
+          <label>Slug (used in <code>[[quiz: slug]]</code>)
+            <input type="text" name="slug" required pattern="[a-z0-9][a-z0-9-]*" maxlength="64" placeholder="relative-minors" />
+          </label>
+          <label>Intro (markdown, optional)
+            <textarea name="intro_md" rows="3" placeholder="A note that appears above the questions."></textarea>
+          </label>
+          <label>Order index
+            <input type="number" name="order_index" value="0" min="0" />
+          </label>
+          <button class="btn" type="submit">Create quiz</button>
+        </form>
+      </details>
+
+      {(!quizzes || quizzes.length === 0) ? (
+        <p class="muted italic" style="margin-top: 24px;">No quizzes yet.</p>
+      ) : (
+        <div class="quiz-list">
+          {sortByOrder(quizzes).map((quiz: any) => {
+            const questions = sortByOrder(quiz.class_quiz_questions);
+            return (
+              <article class="quiz-edit-card" data-quiz-id={quiz.id}>
+                <header class="quiz-edit-head">
+                  <h3>
+                    {quiz.title}
+                    <span class="quiz-edit-slug">[[quiz: {quiz.slug}]]</span>
+                  </h3>
+                  <div class="quiz-edit-actions">
+                    <details class="inline-edit">
+                      <summary class="row-action">Edit metadata</summary>
+                      <form class="auth-form quiz-meta-form" method="POST" action="/api/courses/classes/quizzes/save">
+                        <CsrfField />
+                        <input type="hidden" name="quiz_id"     value={quiz.id} />
+                        <input type="hidden" name="class_id"    value={cls.id} />
+                        <input type="hidden" name="course_slug" value={course.slug} />
+                        <input type="hidden" name="class_slug"  value={cls.slug} />
+                        <label>Title
+                          <input type="text" name="title" required maxlength="120" value={quiz.title} />
+                        </label>
+                        <label>Slug
+                          <input type="text" name="slug" required pattern="[a-z0-9][a-z0-9-]*" maxlength="64" value={quiz.slug} />
+                        </label>
+                        <label>Intro (markdown)
+                          <textarea name="intro_md" rows="3">{quiz.intro_md ?? ''}</textarea>
+                        </label>
+                        <label>Order index
+                          <input type="number" name="order_index" value={quiz.order_index ?? 0} min="0" />
+                        </label>
+                        <button class="btn btn-ghost btn-sm" type="submit">Save metadata</button>
+                      </form>
+                    </details>
+                    <form method="POST" action="/api/courses/classes/quizzes/delete" onsubmit="return confirm('Delete this quiz and all its questions? This cannot be undone.');" style="display:inline;">
+                      <CsrfField />
+                      <input type="hidden" name="quiz_id"     value={quiz.id} />
+                      <input type="hidden" name="course_slug" value={course.slug} />
+                      <input type="hidden" name="class_slug"  value={cls.slug} />
+                      <button type="submit" class="row-action danger">Delete quiz</button>
+                    </form>
+                  </div>
+                </header>
+
+                {questions.length === 0 ? (
+                  <p class="muted italic" style="margin: 12px 0;">No questions yet — add the first one below.</p>
+                ) : (
+                  <ol class="qedit-list">
+                    {questions.map((q: any) => {
+                      const opts = sortByOrder(q.class_quiz_options);
+                      const correctIdx = opts.findIndex((o: any) => o.is_correct);
+                      return (
+                        <li class="qedit-row">
+                          <details>
+                            <summary>
+                              <span class="qedit-prompt-preview">{q.prompt_md?.slice(0, 80) || '(no prompt)'}</span>
+                              <span class="qedit-meta">{opts.length} option{opts.length === 1 ? '' : 's'} · correct: {correctIdx >= 0 ? `#${correctIdx + 1}` : '(none)'}</span>
+                            </summary>
+                            <form class="auth-form question-form" method="POST" action="/api/courses/classes/quizzes/questions/save">
+                              <CsrfField />
+                              <input type="hidden" name="question_id" value={q.id} />
+                              <input type="hidden" name="quiz_id"     value={quiz.id} />
+                              <input type="hidden" name="course_slug" value={course.slug} />
+                              <input type="hidden" name="class_slug"  value={cls.slug} />
+                              <label>Prompt (markdown)
+                                <textarea name="prompt_md" rows="3" required>{q.prompt_md ?? ''}</textarea>
+                              </label>
+                              <label>Order index
+                                <input type="number" name="order_index" value={q.order_index ?? 0} min="0" />
+                              </label>
+                              <fieldset class="opt-fieldset">
+                                <legend>Options (mark exactly one correct)</legend>
+                                {Array.from({ length: 6 }, (_, i) => {
+                                  const opt = opts[i];
+                                  return (
+                                    <div class="opt-row">
+                                      <input
+                                        type="radio"
+                                        name="correct_index"
+                                        value={i}
+                                        checked={correctIdx === i}
+                                        title="Mark this option correct"
+                                      />
+                                      <input
+                                        type="text"
+                                        name="option_label"
+                                        value={opt?.label ?? ''}
+                                        placeholder={`Option ${i + 1}${i < 2 ? ' (required)' : ' (optional)'}`}
+                                        maxlength="200"
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </fieldset>
+                              <label>Explanation (markdown, shown after answering)
+                                <textarea name="explanation_md" rows="3">{q.explanation_md ?? ''}</textarea>
+                              </label>
+                              <div class="form-actions">
+                                <button class="btn btn-ghost btn-sm" type="submit">Save question</button>
+                              </div>
+                            </form>
+                            <form method="POST" action="/api/courses/classes/quizzes/questions/delete" onsubmit="return confirm('Delete this question?');" style="margin-top: 8px;">
+                              <CsrfField />
+                              <input type="hidden" name="question_id" value={q.id} />
+                              <input type="hidden" name="course_slug" value={course.slug} />
+                              <input type="hidden" name="class_slug"  value={cls.slug} />
+                              <button type="submit" class="row-action danger">Delete question</button>
+                            </form>
+                          </details>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+
+                <details class="qedit-add">
+                  <summary class="btn btn-ghost btn-sm" style="cursor:pointer; display:inline-block; margin-top:12px;">+ Add question</summary>
+                  <form class="auth-form question-form" method="POST" action="/api/courses/classes/quizzes/questions/save" style="margin-top: 12px;">
+                    <CsrfField />
+                    <input type="hidden" name="quiz_id"     value={quiz.id} />
+                    <input type="hidden" name="course_slug" value={course.slug} />
+                    <input type="hidden" name="class_slug"  value={cls.slug} />
+                    <label>Prompt (markdown)
+                      <textarea name="prompt_md" rows="3" required placeholder="What is the relative minor of C major?"></textarea>
+                    </label>
+                    <label>Order index
+                      <input type="number" name="order_index" value={questions.length * 10} min="0" />
+                    </label>
+                    <fieldset class="opt-fieldset">
+                      <legend>Options (mark exactly one correct)</legend>
+                      {Array.from({ length: 6 }, (_, i) => (
+                        <div class="opt-row">
+                          <input
+                            type="radio"
+                            name="correct_index"
+                            value={i}
+                            title="Mark this option correct"
+                          />
+                          <input
+                            type="text"
+                            name="option_label"
+                            placeholder={`Option ${i + 1}${i < 2 ? ' (required)' : ' (optional)'}`}
+                            maxlength="200"
+                          />
+                        </div>
+                      ))}
+                    </fieldset>
+                    <label>Explanation (markdown, shown after answering)
+                      <textarea name="explanation_md" rows="3"></textarea>
+                    </label>
+                    <button class="btn" type="submit">Add question</button>
+                  </form>
+                </details>
               </article>
             );
           })}
@@ -461,5 +673,161 @@ const ok = Astro.url.searchParams.get('ok');
 
   @media (max-width: 880px) {
     .attach-uploaders { grid-template-columns: 1fr; }
+  }
+
+  /* Quiz editor */
+  .quizzes-section {
+    margin: 64px auto 0;
+    max-width: 1100px;
+    padding-top: 32px;
+    border-top: 1px double var(--rule-soft);
+  }
+  .quizzes-section h2 {
+    font-style: italic;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .quiz-new-details {
+    margin-top: 20px;
+  }
+  .quiz-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 24px;
+  }
+  .quiz-edit-card {
+    border: 1px solid var(--rule-soft);
+    background: rgba(255, 250, 235, 0.5);
+    padding: 18px 22px;
+  }
+  .quiz-edit-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+    border-bottom: 1px dashed var(--rule-soft);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+  .quiz-edit-head h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--forest-deep);
+  }
+  .quiz-edit-slug {
+    display: inline-block;
+    margin-left: 12px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    background: rgba(168, 132, 58, 0.18);
+    padding: 1px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+    font-weight: 400;
+  }
+  .quiz-edit-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .qedit-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .qedit-row {
+    border: 1px solid var(--rule-soft);
+    background: rgba(255, 250, 235, 0.55);
+  }
+  .qedit-row > details > summary {
+    padding: 10px 14px;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .qedit-row > details > summary::-webkit-details-marker { display: none; }
+  .qedit-row > details > summary::before {
+    content: "▸";
+    color: var(--ink-soft);
+    margin-right: 4px;
+  }
+  .qedit-row > details[open] > summary::before { content: "▾"; }
+  .qedit-prompt-preview {
+    flex: 1;
+    font-family: var(--display);
+    font-weight: 500;
+    color: var(--forest-deep);
+    font-size: 1rem;
+    min-width: 0;
+  }
+  .qedit-meta {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+  }
+  .qedit-row > details > .question-form,
+  .qedit-row > details > form {
+    padding: 14px 16px 18px;
+    border-top: 1px dashed var(--rule-soft);
+  }
+  .question-form .opt-fieldset {
+    border: 1px solid var(--rule-soft);
+    padding: 10px 14px;
+    background: rgba(255, 250, 235, 0.6);
+  }
+  .question-form .opt-fieldset legend {
+    padding: 0 6px;
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+  .opt-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .opt-row input[type="radio"] {
+    flex: 0 0 auto;
+    accent-color: var(--gold);
+  }
+  .opt-row input[type="text"] {
+    flex: 1;
+    padding: 5px 8px;
+    border: 1px solid var(--rule-soft);
+    background: var(--parchment);
+    font-family: var(--body);
+  }
+  .quiz-meta-form textarea,
+  .question-form textarea {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+  }
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .qedit-add summary { font-size: 0.9rem; }
+  .inline-edit > summary {
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 0.92rem;
+  }
+  .inline-edit[open] > summary {
+    margin-bottom: 8px;
   }
 </style>

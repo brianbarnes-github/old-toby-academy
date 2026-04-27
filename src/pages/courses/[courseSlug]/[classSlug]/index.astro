@@ -1,6 +1,11 @@
 ---
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
-import { renderMarkdown, containsTasks } from '../../../../lib/markdown';
+import {
+  renderMarkdown,
+  containsTasks,
+  containsQuizShortcodes,
+  replaceQuizShortcodes,
+} from '../../../../lib/markdown';
 
 export const prerender = false;
 
@@ -125,6 +130,114 @@ for (const a of attachments ?? []) {
   if ((cls.body_md ?? '').includes(url)) inlineRefs.add(a.id);
 }
 const downloadAttachments = (attachments ?? []).filter((a: any) => !inlineRefs.has(a.id));
+
+// ---------- Quizzes ----------
+const hasQuizShortcodes = containsQuizShortcodes(bodyHtml);
+let bodyWithQuizzes = bodyHtml;
+const quizState: Record<string, { option_id: string; correct: boolean }> = {};
+let hasAnyQuiz = false;
+
+if (hasQuizShortcodes) {
+  const { data: quizzes } = await supabase
+    .from('class_quizzes')
+    .select(`
+      id, slug, title, intro_md, order_index,
+      class_quiz_questions (
+        id, prompt_md, explanation_md, order_index,
+        class_quiz_options ( id, label, is_correct, order_index )
+      )
+    `)
+    .eq('class_id', cls.id)
+    .order('order_index', { ascending: true });
+
+  const bySlug = new Map<string, any>();
+  for (const q of quizzes ?? []) {
+    bySlug.set(q.slug as string, q);
+  }
+
+  // Pre-fetch the user's prior answers for this class's quizzes.
+  if (userId && (quizzes ?? []).length > 0) {
+    const { data: marks } = await supabase
+      .from('progress_marks')
+      .select('mark_key, value')
+      .eq('user_id', userId)
+      .eq('course_slug', courseSlug)
+      .eq('mark_type', 'quiz')
+      .like('mark_key', `${cls.id}:%`);
+    for (const m of marks ?? []) {
+      const colon = (m.mark_key as string).indexOf(':');
+      if (colon < 0) continue;
+      const questionId = (m.mark_key as string).slice(colon + 1);
+      const v = m.value as any;
+      if (v && typeof v.option_id === 'string') {
+        quizState[questionId] = { option_id: v.option_id, correct: v.correct === true };
+      }
+    }
+  }
+
+  function escapeHtml(s: string): string {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function renderQuiz(slug: string): string {
+    const quiz = bySlug.get(slug);
+    if (!quiz) {
+      return `<aside class="quiz-missing">Quiz <code>${escapeHtml(slug)}</code> not found.</aside>`;
+    }
+    const introHtml = quiz.intro_md ? renderMarkdown(quiz.intro_md) : '';
+    const questions = (quiz.class_quiz_questions ?? [])
+      .slice()
+      .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
+
+    const questionsHtml = questions
+      .map((q: any) => {
+        if (!q || !Array.isArray(q.class_quiz_options) || q.class_quiz_options.length === 0) {
+          return '';
+        }
+        hasAnyQuiz = true;
+        const promptHtml = renderMarkdown(q.prompt_md ?? '');
+        const explHtml = q.explanation_md ? renderMarkdown(q.explanation_md) : '';
+        const options = q.class_quiz_options
+          .slice()
+          .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
+        const optsHtml = options
+          .map(
+            (o: any) => `
+            <li class="quiz-opt">
+              <label>
+                <input type="radio" name="q-${q.id}" value="${escapeHtml(o.id)}" />
+                <span>${escapeHtml(o.label ?? '')}</span>
+              </label>
+            </li>`,
+          )
+          .join('');
+        return `
+          <form class="quiz-q" data-question-id="${escapeHtml(q.id)}">
+            <div class="quiz-prompt">${promptHtml}</div>
+            <ol class="quiz-options">${optsHtml}</ol>
+            <div class="quiz-actions">
+              <button class="btn btn-ghost btn-sm" type="submit">Submit answer</button>
+            </div>
+            ${explHtml ? `<div class="quiz-explanation" hidden>${explHtml}</div>` : ''}
+          </form>`;
+      })
+      .join('');
+
+    return `
+      <section class="quiz-block" data-quiz-slug="${escapeHtml(quiz.slug)}">
+        <h3 class="quiz-title">${escapeHtml(quiz.title ?? '')}</h3>
+        ${introHtml ? `<div class="quiz-intro">${introHtml}</div>` : ''}
+        ${questionsHtml || '<p class="muted italic">No questions yet.</p>'}
+      </section>`;
+  }
+
+  bodyWithQuizzes = replaceQuizShortcodes(bodyHtml, renderQuiz);
+}
 ---
 
 <BaseLayout
@@ -161,7 +274,7 @@ const downloadAttachments = (attachments ?? []).filter((a: any) => !inlineRefs.h
           class="class-body"
           data-class-id={cls.id}
           data-course-slug={course.slug}
-          set:html={bodyHtml}
+          set:html={bodyWithQuizzes}
         />
       ) : (
         <p class="muted italic">No content yet.{canManage && <> <a href={`/courses/${course.slug}/${cls.slug}/edit`}>Add some</a>.</>}</p>
@@ -175,6 +288,15 @@ const downloadAttachments = (attachments ?? []).filter((a: any) => !inlineRefs.h
         />
       )}
       {hasTasks && <script src="/scripts/class-tasks.js" defer></script>}
+
+      {hasAnyQuiz && (
+        <script
+          type="application/json"
+          id="quiz-state"
+          set:html={JSON.stringify(quizState).replace(/</g, '\\u003c')}
+        />
+      )}
+      {hasAnyQuiz && <script src="/scripts/class-quiz.js" defer></script>}
 
       {downloadAttachments.length > 0 && (
         <section class="class-downloads">
@@ -345,5 +467,120 @@ const downloadAttachments = (attachments ?? []).filter((a: any) => !inlineRefs.h
     font-size: 0.78rem;
     color: var(--ink-soft);
     letter-spacing: 0.04em;
+  }
+
+  /* Quizzes */
+  .class-body .quiz-block {
+    margin: 36px 0;
+    padding: 24px 28px;
+    background: rgba(255, 250, 235, 0.55);
+    border: 1px solid var(--rule-soft);
+    border-left: 4px solid var(--gold);
+  }
+  .class-body .quiz-title {
+    margin: 0 0 12px;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.4rem;
+    color: var(--forest-deep);
+  }
+  .class-body .quiz-intro {
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+  }
+  .class-body .quiz-q {
+    margin: 22px 0 0;
+    padding-top: 18px;
+    border-top: 1px dashed var(--rule-soft);
+  }
+  .class-body .quiz-q:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+  .class-body .quiz-prompt {
+    font-family: var(--display);
+    font-weight: 600;
+    color: var(--forest-deep);
+    margin-bottom: 12px;
+  }
+  .class-body .quiz-prompt p { margin-bottom: 0; }
+  .class-body .quiz-options {
+    list-style: none;
+    padding-left: 0;
+    margin: 0 0 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .class-body .quiz-opt label {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+  .class-body .quiz-opt label:hover {
+    background: rgba(168, 132, 58, 0.1);
+  }
+  .class-body .quiz-opt input[type="radio"] {
+    accent-color: var(--gold);
+    margin: 0;
+  }
+  .class-body .quiz-opt.opt-correct label {
+    background: rgba(70, 105, 40, 0.15);
+    border-color: #466928;
+    color: #2c4218;
+  }
+  .class-body .quiz-opt.opt-correct label::after {
+    content: "✓";
+    margin-left: auto;
+    color: #466928;
+    font-weight: 700;
+  }
+  .class-body .quiz-opt.opt-wrong label {
+    background: rgba(107, 31, 26, 0.12);
+    border-color: var(--oxblood);
+    color: var(--oxblood-deep);
+  }
+  .class-body .quiz-opt.opt-wrong label::after {
+    content: "✗";
+    margin-left: auto;
+    color: var(--oxblood);
+    font-weight: 700;
+  }
+  .class-body .quiz-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .class-body .quiz-q.is-answered .quiz-actions button {
+    background: rgba(255, 250, 235, 0.5);
+  }
+  .class-body .quiz-explanation {
+    margin-top: 14px;
+    padding: 12px 16px;
+    background: rgba(31, 58, 46, 0.05);
+    border-left: 3px solid var(--forest);
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+  .class-body .quiz-explanation p:last-child { margin-bottom: 0; }
+  .class-body .quiz-hint {
+    display: inline-block;
+    margin-left: 12px;
+    color: var(--oxblood);
+    font-style: italic;
+    font-size: 0.9rem;
+  }
+  .class-body .quiz-missing {
+    margin: 24px 0;
+    padding: 12px 16px;
+    background: rgba(107, 31, 26, 0.08);
+    border-left: 3px solid var(--oxblood);
+    color: var(--oxblood-deep);
+    font-style: italic;
+    font-size: 0.95rem;
   }
 </style>
